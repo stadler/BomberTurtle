@@ -2,7 +2,6 @@ package com.github.stadler.bomberturtle;
 
 import com.badlogic.gdx.backends.lwjgl3.Lwjgl3Application;
 import com.badlogic.gdx.backends.lwjgl3.Lwjgl3ApplicationConfiguration;
-import com.github.stadler.bomberturtle.BomberTurtle;
 
 // Please note that on macOS your application needs to be started with the -XstartOnFirstThread JVM argument
 public class DesktopLauncher {
@@ -11,6 +10,6 @@ public class DesktopLauncher {
 		config.setForegroundFPS(60);
 		config.setWindowedMode(800, 600);
 		config.setTitle("BomberTurtle");
-		new Lwjgl3Application(new BomberTurtle(), config);
+		new Lwjgl3Application(new BomberTurtleGame(), config);
 	}
 }

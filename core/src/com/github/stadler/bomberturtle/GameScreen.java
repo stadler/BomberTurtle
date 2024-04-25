@@ -1,25 +1,25 @@
 package com.github.stadler.bomberturtle;
 
-import com.badlogic.gdx.ApplicationAdapter;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
+import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.utils.ScreenUtils;
 
-public class BomberTurtle extends ApplicationAdapter {
-	private SpriteBatch batch;
+public class GameScreen implements Screen {
+	private final BomberTurtleGame game;
 	private Texture bombeImg;
 	private Texture schilkiImg;
 	private Rectangle bomb;
 	private Rectangle schilki;
 	private OrthographicCamera camera;
 
-	@Override
-	public void create () {
-		batch = new SpriteBatch();
+	public GameScreen(final BomberTurtleGame game) {
+		this.game = game;
+
 		bombeImg = new Texture("Bombe.png");
 		schilkiImg = new Texture("Schilki.png");
 
@@ -42,7 +42,7 @@ public class BomberTurtle extends ApplicationAdapter {
 	}
 
 	@Override
-	public void render () {
+	public void render(float v) {
 		// clear the screen with a dark blue color. The arguments to clear are the red, green
 		// blue and alpha component in the range [0,1] of the color to be used to clear the screen.
 		ScreenUtils.clear(1, 1, 1, 1);
@@ -52,11 +52,11 @@ public class BomberTurtle extends ApplicationAdapter {
 
 		// tell the SpriteBatch to render in the
 		// coordinate system specified by the camera.
-		batch.setProjectionMatrix(camera.combined);
-		batch.begin();
-		batch.draw(bombeImg, bomb.x, bomb.y);
-		batch.draw(schilkiImg, schilki.x, schilki.y);
-		batch.end();
+		game.batch.setProjectionMatrix(camera.combined);
+		game.batch.begin();
+		game.batch.draw(bombeImg, bomb.x, bomb.y);
+		game.batch.draw(schilkiImg, schilki.x, schilki.y);
+		game.batch.end();
 
 		handleInputs();
 	}
@@ -89,9 +89,33 @@ public class BomberTurtle extends ApplicationAdapter {
 	}
 
 	@Override
+	public void show() {
+
+	}
+
+	@Override
+	public void resize(int i, int i1) {
+
+	}
+
+	@Override
+	public void pause() {
+
+	}
+
+	@Override
+	public void resume() {
+
+	}
+
+	@Override
+	public void hide() {
+
+	}
+
+	@Override
 	public void dispose () {
 		// dispose of all the native resources
-		batch.dispose();
 		bombeImg.dispose();
 		schilkiImg.dispose();
 	}
