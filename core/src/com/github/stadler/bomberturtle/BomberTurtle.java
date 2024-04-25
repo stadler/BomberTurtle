@@ -11,25 +11,34 @@ import com.badlogic.gdx.utils.ScreenUtils;
 
 public class BomberTurtle extends ApplicationAdapter {
 	private SpriteBatch batch;
-	private Texture img;
+	private Texture bombeImg;
+	private Texture schilkiImg;
 	private Rectangle bomb;
+	private Rectangle schilki;
 	private OrthographicCamera camera;
 
 	@Override
 	public void create () {
 		batch = new SpriteBatch();
-		img = new Texture("Bombe.png");
+		bombeImg = new Texture("Bombe.png");
+		schilkiImg = new Texture("Schilki.png");
 
 		// create the camera and the SpriteBatch
 		camera = new OrthographicCamera();
 		camera.setToOrtho(false, 800, 600);
 
 		// create a Rectangle to logically represent the bucket
+		schilki = new Rectangle();
+		schilki.width = 120;
+		schilki.height = 120;
+		schilki.x = 20;
+		schilki.y = 20;
+
 		bomb = new Rectangle();
-		bomb.x = (800f / 2f) - (275f / 2f); // center the bucket horizontally
-		bomb.y = 20; // bottom left corner of the bucket is 20 pixels above the bottom screen edge
-		bomb.width = 275;
-		bomb.height = 329;
+		bomb.width = 120;
+		bomb.height = 120;
+		bomb.x = camera.viewportWidth - 20 - (bomb.width / 2f);
+		bomb.y = 20;
 	}
 
 	@Override
@@ -45,7 +54,8 @@ public class BomberTurtle extends ApplicationAdapter {
 		// coordinate system specified by the camera.
 		batch.setProjectionMatrix(camera.combined);
 		batch.begin();
-		batch.draw(img, bomb.x, bomb.y);
+		batch.draw(bombeImg, bomb.x, bomb.y);
+		batch.draw(schilkiImg, schilki.x, schilki.y);
 		batch.end();
 
 		handleInputs();
@@ -53,30 +63,36 @@ public class BomberTurtle extends ApplicationAdapter {
 
 	private void handleInputs() {
 		// process user input
-		if (Gdx.input.isKeyPressed(Input.Keys.LEFT)) {
-			bomb.x -= 200 * Gdx.graphics.getDeltaTime();
+		handleDirectionsForEntity(bomb, Input.Keys.LEFT, Input.Keys.RIGHT, Input.Keys.DOWN, Input.Keys.UP);
+		handleDirectionsForEntity(schilki, Input.Keys.A, Input.Keys.D, Input.Keys.S, Input.Keys.W);
+	}
+
+	private void handleDirectionsForEntity(Rectangle entity, int left, int right, int down, int up) {
+		if (Gdx.input.isKeyPressed(left)) {
+			entity.x -= 200 * Gdx.graphics.getDeltaTime();
 		}
-		if (Gdx.input.isKeyPressed(Input.Keys.RIGHT)) {
-			bomb.x += 200 * Gdx.graphics.getDeltaTime();
+		if (Gdx.input.isKeyPressed(right)) {
+			entity.x += 200 * Gdx.graphics.getDeltaTime();
 		}
-		if (Gdx.input.isKeyPressed(Input.Keys.DOWN)) {
-			bomb.y -= 200 * Gdx.graphics.getDeltaTime();
+		if (Gdx.input.isKeyPressed(down)) {
+			entity.y -= 200 * Gdx.graphics.getDeltaTime();
 		}
-		if (Gdx.input.isKeyPressed(Input.Keys.UP)) {
-			bomb.y += 200 * Gdx.graphics.getDeltaTime();
+		if (Gdx.input.isKeyPressed(up)) {
+			entity.y += 200 * Gdx.graphics.getDeltaTime();
 		}
 
 		// make sure the bucket stays within the screen bounds
-		if(bomb.x < 0) bomb.x = 0;
-		if(bomb.x > 800 - bomb.width) bomb.x = 800 - bomb.width;
-		if(bomb.y < 0) bomb.y = 0;
-		if(bomb.y > 600 - bomb.height) bomb.y = 600 - bomb.height;
+		if(entity.x < 0) entity.x = 0;
+		if(entity.x > camera.viewportWidth - entity.width) entity.x = camera.viewportWidth - entity.width;
+		if(entity.y < 0) entity.y = 0;
+		if(entity.y > camera.viewportHeight - entity.height) entity.y = camera.viewportHeight - entity.height;
 	}
 
 	@Override
 	public void dispose () {
 		// dispose of all the native resources
 		batch.dispose();
-		img.dispose();
+		bombeImg.dispose();
+		schilkiImg.dispose();
 	}
 }
