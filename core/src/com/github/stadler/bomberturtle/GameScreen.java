@@ -5,12 +5,13 @@ import com.badlogic.gdx.Input;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Texture;
-import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.utils.ScreenUtils;
 
 public class GameScreen implements Screen {
 	private final BomberTurtleGame game;
+	private final Texture wallImg;
+	private final Rectangle wall;
 	private Texture bombeImg;
 	private Texture schilkiImg;
 	private Rectangle bomb;
@@ -20,25 +21,28 @@ public class GameScreen implements Screen {
 	public GameScreen(final BomberTurtleGame game) {
 		this.game = game;
 
-		bombeImg = new Texture("Bombe.png");
-		schilkiImg = new Texture("Schilki.png");
-
 		// create the camera and the SpriteBatch
 		camera = new OrthographicCamera();
 		camera.setToOrtho(false, 800, 600);
 
 		// create a Rectangle to logically represent the bucket
-		schilki = new Rectangle();
-		schilki.width = 120;
-		schilki.height = 120;
-		schilki.x = 20;
-		schilki.y = 20;
+		schilkiImg = new Texture("Schilki.png");
+		schilki = createEntity(120, 120, 20, 20);
 
-		bomb = new Rectangle();
-		bomb.width = 120;
-		bomb.height = 120;
-		bomb.x = camera.viewportWidth - 20 - (bomb.width / 2f);
-		bomb.y = 20;
+		bombeImg = new Texture("Bombe.png");
+		bomb = createEntity(120, 120, -20, 20);
+
+		wallImg = new Texture("wall.png");
+		wall = createEntity(120, 200, 300, 20);
+	}
+
+	private Rectangle createEntity(int width, float height, int startX, int startY) {
+		Rectangle entity = new Rectangle();
+		entity.width = width;
+		entity.height = height;
+		entity.x = (startX) >= 0 ? startX : camera.viewportWidth + startX - entity.width;
+		entity.y = (startY) >= 0 ? startY : camera.viewportHeight + startY - entity.height;
+		return entity;
 	}
 
 	@Override
@@ -54,8 +58,9 @@ public class GameScreen implements Screen {
 		// coordinate system specified by the camera.
 		game.batch.setProjectionMatrix(camera.combined);
 		game.batch.begin();
-		game.batch.draw(bombeImg, bomb.x, bomb.y);
-		game.batch.draw(schilkiImg, schilki.x, schilki.y);
+		game.batch.draw(bombeImg, bomb.x, bomb.y, bomb.width, bomb.height);
+		game.batch.draw(schilkiImg, schilki.x, schilki.y, schilki.width, schilki.height);
+		game.batch.draw(wallImg, wall.x, wall.y, wall.width, wall.height);
 		game.batch.end();
 
 		handleInputs();
@@ -68,17 +73,19 @@ public class GameScreen implements Screen {
 	}
 
 	private void handleDirectionsForEntity(Rectangle entity, int left, int right, int down, int up) {
+		float moveAmount = 200 * Gdx.graphics.getDeltaTime();
+
 		if (Gdx.input.isKeyPressed(left)) {
-			entity.x -= 200 * Gdx.graphics.getDeltaTime();
+			moveIfNotInWall(entity, -moveAmount, 0);
 		}
 		if (Gdx.input.isKeyPressed(right)) {
-			entity.x += 200 * Gdx.graphics.getDeltaTime();
+			moveIfNotInWall(entity, moveAmount, 0);
 		}
 		if (Gdx.input.isKeyPressed(down)) {
-			entity.y -= 200 * Gdx.graphics.getDeltaTime();
+			moveIfNotInWall(entity, 0, -moveAmount);
 		}
 		if (Gdx.input.isKeyPressed(up)) {
-			entity.y += 200 * Gdx.graphics.getDeltaTime();
+			moveIfNotInWall(entity, 0, moveAmount);
 		}
 
 		// make sure the bucket stays within the screen bounds
@@ -86,6 +93,18 @@ public class GameScreen implements Screen {
 		if(entity.x > camera.viewportWidth - entity.width) entity.x = camera.viewportWidth - entity.width;
 		if(entity.y < 0) entity.y = 0;
 		if(entity.y > camera.viewportHeight - entity.height) entity.y = camera.viewportHeight - entity.height;
+	}
+
+	private void moveIfNotInWall(Rectangle entity, float moveX, float moveY) {
+		float newX = entity.x + moveX;
+		float newY = entity.y + moveY;
+		if (!(newX + entity.width > wall.x
+			  && newX < wall.x + wall.width
+			  && newY + entity.height > wall.y
+			  && newY < wall.y + wall.height)) {
+			entity.x = newX;
+			entity.y = newY;
+		}
 	}
 
 	@Override
@@ -118,5 +137,6 @@ public class GameScreen implements Screen {
 		// dispose of all the native resources
 		bombeImg.dispose();
 		schilkiImg.dispose();
+		wallImg.dispose();
 	}
 }

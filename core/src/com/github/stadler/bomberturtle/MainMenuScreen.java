@@ -6,6 +6,8 @@ import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.utils.ScreenUtils;
 
+import static com.badlogic.gdx.Input.Keys.ANY_KEY;
+
 public class MainMenuScreen implements Screen {
 
     private final BomberTurtleGame game;
@@ -42,7 +44,7 @@ public class MainMenuScreen implements Screen {
         game.batch.draw(bombeImg, 600-60, 300);
         game.batch.end();
 
-        if (Gdx.input.isTouched()) {
+        if (Gdx.input.isTouched() || Gdx.input.isKeyPressed(ANY_KEY)) {
             game.setScreen(new GameScreen(game));
             dispose();
         }
