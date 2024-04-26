@@ -6,15 +6,10 @@ import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.math.Rectangle;
+import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.utils.ScreenUtils;
 
-import java.io.IOException;
-import java.io.UncheckedIOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.List;
+import java.time.LocalDateTime;
 import java.util.Optional;
 
 public class GameScreen implements Screen {
@@ -25,6 +20,7 @@ public class GameScreen implements Screen {
     private final Texture schilkiImg;
     private final OrthographicCamera camera;
     private final Level level;
+    private LocalDateTime gameFinishedTs = null;
 
 
     public GameScreen(final BomberTurtleGame game) {
@@ -47,7 +43,7 @@ public class GameScreen implements Screen {
     public void render(float v) {
         // clear the screen with a dark blue color. The arguments to clear are the red, green
         // blue and alpha component in the range [0,1] of the color to be used to clear the screen.
-        ScreenUtils.clear(1, 1, 1, 1);
+        ScreenUtils.clear(0.8f, 0.8f, 0.8f, 1);
 
         // tell the camera to update its matrices.
         camera.update();
@@ -61,32 +57,34 @@ public class GameScreen implements Screen {
         level.walls.forEach(wall -> {
             game.batch.draw(wallImg, wall.x, wall.y, wall.width, wall.height);
         });
+        if (gameFinishedTs != null) {
+            game.titleFont.draw(game.batch, "Gewonnen!", 300, 300);
+        }
         game.batch.end();
 
         handleInputs();
     }
 
     private void handleInputs() {
+        if (gameFinishedTs != null) {
+            if (gameFinishedTs.plusSeconds(1).isBefore(LocalDateTime.now())) {
+                game.setScreen(new MainMenuScreen(game));
+                dispose();
+            }
+            return;
+        }
         // process user input
         handleDirectionsForEntity(level.bombe, Input.Keys.LEFT, Input.Keys.RIGHT, Input.Keys.DOWN, Input.Keys.UP);
         handleDirectionsForEntity(level.schilki, Input.Keys.A, Input.Keys.D, Input.Keys.S, Input.Keys.W);
     }
 
     private void handleDirectionsForEntity(Rectangle entity, int left, int right, int down, int up) {
-        float moveAmount = 200 * Gdx.graphics.getDeltaTime();
+        float moveAmount = 100 * Gdx.graphics.getDeltaTime();
 
-        if (Gdx.input.isKeyPressed(left)) {
-            moveIfNotInWall(entity, -moveAmount, 0);
-        }
-        if (Gdx.input.isKeyPressed(right)) {
-            moveIfNotInWall(entity, moveAmount, 0);
-        }
-        if (Gdx.input.isKeyPressed(down)) {
-            moveIfNotInWall(entity, 0, -moveAmount);
-        }
-        if (Gdx.input.isKeyPressed(up)) {
-            moveIfNotInWall(entity, 0, moveAmount);
-        }
+        if (Gdx.input.isKeyPressed(left)) moveIfPossible(entity, new Vector2(-moveAmount, 0));
+        if (Gdx.input.isKeyPressed(right)) moveIfPossible(entity, new Vector2(moveAmount, 0));
+        if (Gdx.input.isKeyPressed(down)) moveIfPossible(entity, new Vector2(0, -moveAmount));
+        if (Gdx.input.isKeyPressed(up)) moveIfPossible(entity, new Vector2(0, moveAmount));
 
         // make sure the bucket stays within the screen bounds
         if (entity.x < 0) entity.x = 0;
@@ -95,20 +93,29 @@ public class GameScreen implements Screen {
         if (entity.y > camera.viewportHeight - entity.height) entity.y = camera.viewportHeight - entity.height;
     }
 
-    private void moveIfNotInWall(Rectangle entity, float moveX, float moveY) {
-        float newX = entity.x + moveX;
-        float newY = entity.y + moveY;
-        Optional<Rectangle> anyObstacle = level.walls.stream()
-                .filter(wall -> (
-                        newX + entity.width > wall.x
-                                && newX < wall.x + wall.width
-                                && newY + entity.height > wall.y
-                                && newY < wall.y + wall.height))
+    private void moveIfPossible(Rectangle entity, Vector2 move) {
+        Optional<Rectangle> anyWall = level.walls.stream()
+                .filter(wall -> doEntitiesCollide(entity, wall, move))
                 .findAny();
-        if (anyObstacle.isEmpty()) {
-            entity.x = newX;
-            entity.y = newY;
+        if (anyWall.isEmpty()) {
+            entity.x += move.x;
+            entity.y += move.y;
         }
+
+        Rectangle otherEntity = level.getOtherEntity(entity);
+        if (doEntitiesCollide(entity, otherEntity, move)) {
+            gameFinishedTs = LocalDateTime.now();
+        }
+
+    }
+
+    private static boolean doEntitiesCollide(Rectangle entity, Rectangle otherEntity, Vector2 move) {
+        float newX = entity.x + move.x;
+        float newY = entity.y + move.y;
+        return newX + entity.width > otherEntity.x
+                && newX < otherEntity.x + otherEntity.width
+                && newY + entity.height > otherEntity.y
+                && newY < otherEntity.y + otherEntity.height;
     }
 
     @Override

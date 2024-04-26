@@ -38,9 +38,9 @@ public class LevelEditor {
                 int startX = (colNr - 1) * BLOCK_SIZE;
                 int startY = (rowNr - 1) * BLOCK_SIZE;
                 switch (currentChar) {
-                    case 'x' -> level.walls.add(createEntity(BLOCK_SIZE - 1, BLOCK_SIZE - 1, startX, startY));
-                    case 's' -> level.schilki = createEntity(BLOCK_SIZE - 1, BLOCK_SIZE - 1, startX, startY);
-                    case 'b' -> level.bombe = createEntity(BLOCK_SIZE - 1, BLOCK_SIZE - 1, startX, startY);
+                    case 'x' -> level.walls.add(createEntity(BLOCK_SIZE, BLOCK_SIZE, startX, startY));
+                    case 's' -> level.schilki = createEntity(BLOCK_SIZE-1, BLOCK_SIZE-1, startX, startY);
+                    case 'b' -> level.bombe = createEntity(BLOCK_SIZE-1, BLOCK_SIZE-1, startX, startY);
                 }
             }
         }

@@ -6,6 +6,8 @@ import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.utils.ScreenUtils;
 
+import java.time.LocalDateTime;
+
 import static com.badlogic.gdx.Input.Keys.ANY_KEY;
 
 public class MainMenuScreen implements Screen {
@@ -14,6 +16,8 @@ public class MainMenuScreen implements Screen {
     private final OrthographicCamera camera;
     private final Texture bombeImg;
     private final Texture schilkiImg;
+
+    private LocalDateTime showTime;
 
     public MainMenuScreen(BomberTurtleGame game) {
         this.game = game;
@@ -27,7 +31,7 @@ public class MainMenuScreen implements Screen {
 
     @Override
     public void show() {
-
+        showTime = LocalDateTime.now();
     }
 
     @Override
@@ -44,7 +48,8 @@ public class MainMenuScreen implements Screen {
         game.batch.draw(bombeImg, 600-60, 300);
         game.batch.end();
 
-        if (Gdx.input.isTouched() || Gdx.input.isKeyPressed(ANY_KEY)) {
+        if ((Gdx.input.isTouched() || Gdx.input.isKeyPressed(ANY_KEY))
+            && showTime.plusSeconds(1L).isBefore(LocalDateTime.now())) {
             game.setScreen(new GameScreen(game));
             dispose();
         }
