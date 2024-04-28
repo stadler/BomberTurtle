@@ -3,6 +3,7 @@ package com.github.stadler.bomberturtle;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.Screen;
+import com.badlogic.gdx.audio.Sound;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.math.Rectangle;
@@ -19,12 +20,16 @@ public class GameScreen implements Screen {
     private final Texture bombeImg;
     private final Texture schilkiImg;
     private final OrthographicCamera camera;
-    private final Level level;
+    private Level level;
+    private int levelNr = 1;
     private LocalDateTime gameFinishedTs = null;
+    private final Sound sound;
 
 
     public GameScreen(final BomberTurtleGame game) {
         this.game = game;
+
+        sound = Gdx.audio.newSound(Gdx.files.internal("audio/Cedi Nr. 3 - kurz.ogg"));
 
         // create the camera and the SpriteBatch
         camera = new OrthographicCamera();
@@ -68,8 +73,14 @@ public class GameScreen implements Screen {
     private void handleInputs() {
         if (gameFinishedTs != null) {
             if (gameFinishedTs.plusSeconds(1).isBefore(LocalDateTime.now())) {
-                game.setScreen(new MainMenuScreen(game));
-                dispose();
+                if (levelNr == 1) {
+                    levelNr++;
+                    gameFinishedTs = null;
+                    level = new LevelEditor().loadLevel("levels/level2.bt", camera.viewportWidth, camera.viewportHeight);
+                } else {
+                    game.setScreen(new MainMenuScreen(game));
+                    dispose();
+                }
             }
             return;
         }
@@ -79,7 +90,8 @@ public class GameScreen implements Screen {
     }
 
     private void handleDirectionsForEntity(Rectangle entity, int left, int right, int down, int up) {
-        float moveAmount = 100 * Gdx.graphics.getDeltaTime();
+        // Must be factor of block size
+        float moveAmount = 5f;
 
         if (Gdx.input.isKeyPressed(left)) moveIfPossible(entity, new Vector2(-moveAmount, 0));
         if (Gdx.input.isKeyPressed(right)) moveIfPossible(entity, new Vector2(moveAmount, 0));
@@ -100,6 +112,7 @@ public class GameScreen implements Screen {
         if (anyWall.isEmpty()) {
             entity.x += move.x;
             entity.y += move.y;
+            System.out.println("New position x: " + entity.x + ", y: " + entity.y +  " after move: " + move);
         }
 
         Rectangle otherEntity = level.getOtherEntity(entity);
@@ -120,7 +133,9 @@ public class GameScreen implements Screen {
 
     @Override
     public void show() {
-
+        long soundId = sound.play(0.5f);
+        sound.setLooping(soundId, true);
+        sound.setPitch(soundId, 2);
     }
 
     @Override
@@ -130,17 +145,17 @@ public class GameScreen implements Screen {
 
     @Override
     public void pause() {
-
+        sound.pause();
     }
 
     @Override
     public void resume() {
-
+        sound.resume();
     }
 
     @Override
     public void hide() {
-
+        sound.pause();
     }
 
     @Override
@@ -149,5 +164,6 @@ public class GameScreen implements Screen {
         bombeImg.dispose();
         schilkiImg.dispose();
         wallImg.dispose();
+        sound.dispose();
     }
 }
