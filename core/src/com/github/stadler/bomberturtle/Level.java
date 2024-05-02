@@ -1,21 +1,11 @@
 package com.github.stadler.bomberturtle;
 
-import com.badlogic.gdx.math.Rectangle;
-
 import java.util.ArrayList;
 import java.util.List;
 
 public class Level {
-    List<Rectangle> walls = new ArrayList<>();
-    Rectangle bombe;
-    Rectangle schilki;
+    List<Entity> walls = new ArrayList<>();
+    List<Entity> players = new ArrayList<>();
+    List<Entity> enemies = new ArrayList<>();
 
-    public Rectangle getOtherEntity(Rectangle entity) {
-        if (entity == bombe) {
-            return schilki;
-        } else {
-            return bombe;
-        }
-
-    }
 }

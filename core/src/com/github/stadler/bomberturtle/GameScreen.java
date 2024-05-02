@@ -1,7 +1,6 @@
 package com.github.stadler.bomberturtle;
 
 import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.Input;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.audio.Sound;
 import com.badlogic.gdx.graphics.OrthographicCamera;
@@ -11,44 +10,63 @@ import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.utils.ScreenUtils;
 
 import java.time.LocalDateTime;
-import java.util.Optional;
+import java.time.LocalTime;
+import java.util.Arrays;
+import java.util.List;
+
+import static com.badlogic.gdx.Input.Keys;
+import static com.github.stadler.bomberturtle.LevelEditor.BLOCK_SIZE;
 
 public class GameScreen implements Screen {
 
+    public static final float SOUND_VOLUME = 0.0f;
+    public static final int TOTAL_LEVELS = 2;
+    public static final float MOVE_AMOUNT = BLOCK_SIZE / 10f;
+    public static final Vector2 MOVE_LEFT = new Vector2(-MOVE_AMOUNT, 0);
+    public static final Vector2 MOVE_RIGHT = new Vector2(MOVE_AMOUNT, 0);
+    public static final Vector2 MOVE_DOWN = new Vector2(0, -MOVE_AMOUNT);
+    public static final Vector2 MOVE_UP = new Vector2(0, MOVE_AMOUNT);
+
     private final BomberTurtleGame game;
-    private final Texture wallImg;
-    private final Texture bombeImg;
-    private final Texture schilkiImg;
     private final OrthographicCamera camera;
+    private final LevelEditor levelEditor;
+    private final Texture wallTexture;
+    private final Texture playerTexture;
+    private final Texture enemyTexture;
+    private final Sound sound1;
+    private final Sound sound2;
     private Level level;
     private int levelNr = 1;
     private LocalDateTime gameFinishedTs = null;
-    private final Sound sound;
+    private Sound currentSound;
 
 
     public GameScreen(final BomberTurtleGame game) {
         this.game = game;
 
-        sound = Gdx.audio.newSound(Gdx.files.internal("audio/Cedi Nr. 3 - kurz.ogg"));
+        sound1 = Gdx.audio.newSound(Gdx.files.internal("audio/Cedi Nr. 3 - kurz.ogg"));
+        sound2 = Gdx.audio.newSound(Gdx.files.internal("audio/Hit the Note.ogg"));
+        currentSound = sound1;
 
         // create the camera and the SpriteBatch
         camera = new OrthographicCamera();
         camera.setToOrtho(false, 800, 600);
 
         // Textures
-        wallImg = new Texture("wall.png");
-        schilkiImg = new Texture("Schilki.png");
-        bombeImg = new Texture("Bombe.png");
+        wallTexture = new Texture("wall.png");
+        playerTexture = new Texture("Bombe.png");
+        enemyTexture = new Texture("Schilki.png");
 
         // Load level
-        level = new LevelEditor().loadLevel("levels/level1.bt", camera.viewportWidth, camera.viewportHeight);
+        levelEditor = new LevelEditor(camera, wallTexture, playerTexture, enemyTexture);
+        level = levelEditor.loadLevel("levels/level1.bt");
     }
 
     @Override
-    public void render(float v) {
+    public void render(float deltaTime) {
         // clear the screen with a dark blue color. The arguments to clear are the red, green
         // blue and alpha component in the range [0,1] of the color to be used to clear the screen.
-        ScreenUtils.clear(0.8f, 0.8f, 0.8f, 1);
+        ScreenUtils.clear(0.9f, 0.7f, 0.9f, 1);
 
         // tell the camera to update its matrices.
         camera.update();
@@ -57,11 +75,13 @@ public class GameScreen implements Screen {
         // coordinate system specified by the camera.
         game.batch.setProjectionMatrix(camera.combined);
         game.batch.begin();
-        game.batch.draw(bombeImg, level.bombe.x, level.bombe.y, level.bombe.width, level.bombe.height);
-        game.batch.draw(schilkiImg, level.schilki.x, level.schilki.y, level.schilki.width, level.schilki.height);
-        level.walls.forEach(wall -> {
-            game.batch.draw(wallImg, wall.x, wall.y, wall.width, wall.height);
-        });
+
+        level.players.forEach(player ->
+                game.batch.draw(player.texture(), player.rectangle().x, player.rectangle().y, player.rectangle().width, player.rectangle().height));
+        level.enemies.forEach(enemy ->
+                game.batch.draw(enemy.texture(), enemy.rectangle().x, enemy.rectangle().y, enemy.rectangle().width, enemy.rectangle().height));
+        level.walls.forEach(wall ->
+                game.batch.draw(wall.texture(), wall.rectangle().x, wall.rectangle().y, wall.rectangle().width, wall.rectangle().height));
         if (gameFinishedTs != null) {
             game.titleFont.draw(game.batch, "Gewonnen!", 300, 300);
         }
@@ -73,10 +93,17 @@ public class GameScreen implements Screen {
     private void handleInputs() {
         if (gameFinishedTs != null) {
             if (gameFinishedTs.plusSeconds(1).isBefore(LocalDateTime.now())) {
-                if (levelNr == 1) {
+                if (levelNr < TOTAL_LEVELS) {
                     levelNr++;
                     gameFinishedTs = null;
-                    level = new LevelEditor().loadLevel("levels/level2.bt", camera.viewportWidth, camera.viewportHeight);
+                    currentSound.pause();
+                    if (levelNr % 2 == 0) {
+                        currentSound = sound2;
+                    } else {
+                        currentSound = sound1;
+                    }
+                    currentSound.play(SOUND_VOLUME);
+                    level = levelEditor.loadLevel("levels/level" + levelNr + ".bt");
                 } else {
                     game.setScreen(new MainMenuScreen(game));
                     dispose();
@@ -85,41 +112,84 @@ public class GameScreen implements Screen {
             return;
         }
         // process user input
-        handleDirectionsForEntity(level.bombe, Input.Keys.LEFT, Input.Keys.RIGHT, Input.Keys.DOWN, Input.Keys.UP);
-        handleDirectionsForEntity(level.schilki, Input.Keys.A, Input.Keys.D, Input.Keys.S, Input.Keys.W);
-    }
-
-    private void handleDirectionsForEntity(Rectangle entity, int left, int right, int down, int up) {
-        // Must be factor of block size
-        float moveAmount = 5f;
-
-        if (Gdx.input.isKeyPressed(left)) moveIfPossible(entity, new Vector2(-moveAmount, 0));
-        if (Gdx.input.isKeyPressed(right)) moveIfPossible(entity, new Vector2(moveAmount, 0));
-        if (Gdx.input.isKeyPressed(down)) moveIfPossible(entity, new Vector2(0, -moveAmount));
-        if (Gdx.input.isKeyPressed(up)) moveIfPossible(entity, new Vector2(0, moveAmount));
-
-        // make sure the bucket stays within the screen bounds
-        if (entity.x < 0) entity.x = 0;
-        if (entity.x > camera.viewportWidth - entity.width) entity.x = camera.viewportWidth - entity.width;
-        if (entity.y < 0) entity.y = 0;
-        if (entity.y > camera.viewportHeight - entity.height) entity.y = camera.viewportHeight - entity.height;
-    }
-
-    private void moveIfPossible(Rectangle entity, Vector2 move) {
-        Optional<Rectangle> anyWall = level.walls.stream()
-                .filter(wall -> doEntitiesCollide(entity, wall, move))
-                .findAny();
-        if (anyWall.isEmpty()) {
-            entity.x += move.x;
-            entity.y += move.y;
-            System.out.println("New position x: " + entity.x + ", y: " + entity.y +  " after move: " + move);
+        KeyBinding keyBindingPlayer1 = new KeyBinding(Keys.LEFT, Keys.RIGHT, Keys.UP, Keys.DOWN);
+        KeyBinding keyBindingPlayer2 = new KeyBinding(Keys.A, Keys.D, Keys.W, Keys.S);
+        KeyBinding keyBindingPlayer3 = new KeyBinding(Keys.G, Keys.J, Keys.Y, Keys.H);
+        handleDirectionsForEntity(level.players.get(0), keyBindingPlayer1);
+        if (level.players.size() > 1) {
+            handleDirectionsForEntity(level.players.get(1), keyBindingPlayer2);
+        }
+        if (level.players.size() > 2) {
+            handleDirectionsForEntity(level.players.get(2), keyBindingPlayer3);
+        }
+        List<Entity> enemies = level.enemies;
+        for (int enemyNr = 0; enemyNr < enemies.size(); enemyNr++) {
+            moveEnemy(enemies.get(enemyNr), enemyNr + 1);
         }
 
-        Rectangle otherEntity = level.getOtherEntity(entity);
-        if (doEntitiesCollide(entity, otherEntity, move)) {
+    }
+
+    private void moveEnemy(Entity enemy, int enemyNr) {
+        int currentDirection = (LocalTime.now().getSecond() + enemyNr) % 4;
+        if (currentDirection < 1) {
+            doFirstPossibleMove(enemy, MOVE_RIGHT, MOVE_DOWN, MOVE_LEFT, MOVE_UP);
+        } else if (currentDirection < 2) {
+            doFirstPossibleMove(enemy, MOVE_DOWN, MOVE_RIGHT, MOVE_UP, MOVE_LEFT);
+        } else if (currentDirection < 3) {
+            doFirstPossibleMove(enemy, MOVE_UP, MOVE_LEFT, MOVE_DOWN, MOVE_RIGHT);
+        } else {
+            doFirstPossibleMove(enemy, MOVE_LEFT, MOVE_UP, MOVE_RIGHT, MOVE_DOWN);
+        }
+    }
+
+    private void doFirstPossibleMove(Entity entity, Vector2... moves) {
+        Arrays.stream(moves)
+                .filter(move -> isMovePossible(entity, move))
+                .findFirst()
+                .ifPresent(move -> moveIfPossible(entity, move));
+    }
+
+    private void handleDirectionsForEntity(Entity entity, KeyBinding keyBinding) {
+        // Must be factor of block size
+        if (Gdx.input.isKeyPressed(keyBinding.left())) moveIfPossible(entity, MOVE_LEFT);
+        if (Gdx.input.isKeyPressed(keyBinding.right())) moveIfPossible(entity, MOVE_RIGHT);
+        if (Gdx.input.isKeyPressed(keyBinding.up())) moveIfPossible(entity, MOVE_UP);
+        if (Gdx.input.isKeyPressed(keyBinding.down())) moveIfPossible(entity, MOVE_DOWN);
+    }
+
+    private void moveIfPossible(Entity entity, Vector2 move) {
+        if (isMovePossible(entity, move)) {
+            entity.rectangle().x += move.x;
+            entity.rectangle().y += move.y;
+            if (entity.entityType() == EntityType.PLAYER) {
+                Gdx.app.debug(entity.name(),
+                        "New position x: " + entity.rectangle().x
+                                + ", y: " + entity.rectangle().y
+                                + " after move: " + move);
+            }
+        }
+
+        List<Entity> others = List.of();
+        if (entity.entityType() == EntityType.ENEMY) {
+            others = level.players;
+        } else if (entity.entityType() == EntityType.PLAYER) {
+            others = level.enemies;
+        }
+        if (others.stream()
+                .anyMatch(otherEntity -> doEntitiesCollide(entity.rectangle(), otherEntity.rectangle(), move))) {
             gameFinishedTs = LocalDateTime.now();
         }
 
+    }
+
+    private boolean isMovePossible(Entity entity, Vector2 move) {
+        Rectangle rectangle = entity.rectangle();
+        Rectangle newRectangle = new Rectangle(rectangle).setPosition(rectangle.getPosition(new Vector2()).add(move));
+        Rectangle viewport = new Rectangle(-1, -1, camera.viewportWidth + 1, camera.viewportHeight + 1);
+        return viewport.contains(newRectangle)
+               && level.walls
+                       .stream()
+                       .noneMatch(wall -> newRectangle.overlaps(wall.rectangle()));
     }
 
     private static boolean doEntitiesCollide(Rectangle entity, Rectangle otherEntity, Vector2 move) {
@@ -133,9 +203,9 @@ public class GameScreen implements Screen {
 
     @Override
     public void show() {
-        long soundId = sound.play(0.5f);
-        sound.setLooping(soundId, true);
-        sound.setPitch(soundId, 2);
+        long soundId = currentSound.play(SOUND_VOLUME);
+        currentSound.setLooping(soundId, true);
+        currentSound.setPitch(soundId, 2);
     }
 
     @Override
@@ -145,25 +215,27 @@ public class GameScreen implements Screen {
 
     @Override
     public void pause() {
-        sound.pause();
+        currentSound.pause();
     }
 
     @Override
     public void resume() {
-        sound.resume();
+        currentSound.resume();
     }
 
     @Override
     public void hide() {
-        sound.pause();
+        currentSound.pause();
     }
 
     @Override
     public void dispose() {
         // dispose of all the native resources
-        bombeImg.dispose();
-        schilkiImg.dispose();
-        wallImg.dispose();
-        sound.dispose();
+        playerTexture.dispose();
+        enemyTexture.dispose();
+        wallTexture.dispose();
+        sound1.dispose();
+        sound2.dispose();
     }
+
 }

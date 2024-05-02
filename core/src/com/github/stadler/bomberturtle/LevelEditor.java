@@ -1,25 +1,37 @@
 package com.github.stadler.bomberturtle;
 
+import com.badlogic.gdx.graphics.Camera;
+import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.math.Rectangle;
 
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.Arrays;
 import java.util.List;
+
+import static com.github.stadler.bomberturtle.EntityType.getEntityTypeForChar;
 
 public class LevelEditor {
 
-    private static final int BLOCK_SIZE = 50;
+    public static final int BLOCK_SIZE = 50;
     private static final int LEVEL_HEIGHT = 12;
     private static final int LEVEL_WIDTH = 16;
-    private float levelWidth;
-    private float levelHeight;
+    private final Camera camera;
+    private final Texture wallTexture;
+    private final Texture playerTexture;
+    private final Texture enemyTexture;
 
-    public Level loadLevel(String levelPath, float width, float height) {
-        this.levelWidth = width;
-        this.levelHeight = height;
-        List<String> levelLines = null;
+    LevelEditor(Camera camera, Texture wallTexture, Texture playerTexture, Texture enemyTexture) {
+        this.camera = camera;
+        this.wallTexture = wallTexture;
+        this.playerTexture = playerTexture;
+        this.enemyTexture = enemyTexture;
+    }
+
+    public Level loadLevel(String levelPath) {
+        List<String> levelLines;
         try {
             levelLines = Files.readAllLines(Paths.get(levelPath));
         } catch (IOException e) {
@@ -37,10 +49,22 @@ public class LevelEditor {
                 char currentChar = row.charAt(colNr - 1);
                 int startX = (colNr - 1) * BLOCK_SIZE;
                 int startY = (rowNr - 1) * BLOCK_SIZE;
-                switch (currentChar) {
-                    case 'x' -> level.walls.add(createEntity(BLOCK_SIZE, BLOCK_SIZE, startX, startY));
-                    case 's' -> level.schilki = createEntity(BLOCK_SIZE-1, BLOCK_SIZE-1, startX, startY);
-                    case 'b' -> level.bombe = createEntity(BLOCK_SIZE-1, BLOCK_SIZE-1, startX, startY);
+                switch (getEntityTypeForChar(currentChar)) {
+                    case EntityType.WALL -> level.walls.add(
+                            new Entity("Wall",
+                                    EntityType.WALL,
+                                    wallTexture,
+                                    createRectangle(BLOCK_SIZE, BLOCK_SIZE, startX, startY)));
+                    case EntityType.PLAYER -> level.players.add(
+                            new Entity("Player" + (level.players.size() + 1),
+                                    EntityType.PLAYER,
+                                    playerTexture,
+                                    createRectangle(BLOCK_SIZE - 1, BLOCK_SIZE - 1, startX, startY)));
+                    case EntityType.ENEMY -> level.enemies.add(
+                            new Entity("Enemy" + (level.enemies.size() + 1),
+                                    EntityType.ENEMY,
+                                    enemyTexture,
+                                    createRectangle(BLOCK_SIZE - 1, BLOCK_SIZE - 1, startX, startY)));
                 }
             }
         }
@@ -58,22 +82,21 @@ public class LevelEditor {
             }
             for (int colNr = 0; colNr < LEVEL_WIDTH; colNr++) {
                 char currentChar = row.charAt(colNr);
-                if (currentChar != '.'
-                        && currentChar != 'x'
-                        && currentChar != 's'
-                        && currentChar != 'b') {
+                if (Arrays.stream(EntityType.values())
+                        .noneMatch(validEntityType -> validEntityType.entityCharacter == currentChar)) {
                     throw new IllegalStateException("Invalid character in level: " + levelFile + " at row: " + rowNr + 1 + " col: " + colNr + 1);
                 }
             }
         }
     }
 
-    private Rectangle createEntity(int width, int height, int startX, int startY) {
-        Rectangle entity = new Rectangle();
-        entity.width = width;
-        entity.height = height;
-        entity.x = (startX) >= 0 ? startX : levelWidth + startX - entity.width;
-        entity.y = (startY) >= 0 ? startY : levelHeight + startY - entity.height;
-        return entity;
+    private Rectangle createRectangle(int width, int height, int startX, int startY) {
+        Rectangle rectangle = new Rectangle();
+        rectangle.width = width;
+        rectangle.height = height;
+        rectangle.x = (startX) >= 0 ? startX : camera.viewportWidth + startX - rectangle.width;
+        rectangle.y = (startY) >= 0 ? startY : camera.viewportHeight + startY - rectangle.height;
+        return rectangle;
     }
+
 }

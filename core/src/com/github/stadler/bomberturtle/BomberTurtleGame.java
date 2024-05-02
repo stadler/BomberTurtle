@@ -1,5 +1,6 @@
 package com.github.stadler.bomberturtle;
 
+import com.badlogic.gdx.Application;
 import com.badlogic.gdx.Game;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
@@ -14,16 +15,21 @@ public class BomberTurtleGame extends Game {
 
     @Override
     public void create() {
+        Gdx.app.setLogLevel(Application.LOG_DEBUG);
+
         batch = new SpriteBatch();
-        FreeTypeFontGenerator titleFontGenerator = new FreeTypeFontGenerator(Gdx.files.internal("fonts/Silkscreen/Silkscreen-Bold.ttf"));
-        FreeTypeFontGenerator textFontGenerator = new FreeTypeFontGenerator(Gdx.files.internal("fonts/Jersey_15_Charted/Jersey15Charted-Regular.ttf"));
-        FreeTypeFontParameter bigFont = new FreeTypeFontParameter();
-        bigFont.size = 30;
-        FreeTypeFontParameter smallFont = new FreeTypeFontParameter();
-        smallFont.size = 20;
-        titleFont = titleFontGenerator.generateFont(bigFont);
-        textFont = textFontGenerator.generateFont(smallFont);
+
+        titleFont = generateFont("fonts/Silkscreen/Silkscreen-Bold.ttf", 30);
+        textFont = generateFont("fonts/Jersey_15_Charted/Jersey15Charted-Regular.ttf", 20);
+
         this.setScreen(new MainMenuScreen(this));
+    }
+
+    private BitmapFont generateFont(String path, int size) {
+        FreeTypeFontGenerator fontGenerator = new FreeTypeFontGenerator(Gdx.files.internal(path));
+        FreeTypeFontParameter fontParameter = new FreeTypeFontParameter();
+        fontParameter.size = size;
+        return fontGenerator.generateFont(fontParameter);
     }
 
     @Override
