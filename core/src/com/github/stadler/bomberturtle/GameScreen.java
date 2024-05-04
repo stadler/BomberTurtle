@@ -5,6 +5,7 @@ import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.audio.Sound;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.utils.ScreenUtils;
@@ -32,9 +33,6 @@ public class GameScreen implements Screen {
     private final BomberTurtleGame game;
     private final OrthographicCamera camera;
     private final LevelEditor levelEditor;
-    private final Texture wallTexture;
-    private final Texture playerTexture;
-    private final Texture enemyTexture;
     private final Sound sound1;
     private final Sound sound2;
     private Sound currentSound;
@@ -57,13 +55,8 @@ public class GameScreen implements Screen {
         camera = new OrthographicCamera();
         camera.setToOrtho(false, 800, 600);
 
-        // Textures
-        wallTexture = new Texture("wall.png");
-        playerTexture = new Texture("Bombe.png");
-        enemyTexture = new Texture("Schilki.png");
-
         // Load level
-        levelEditor = new LevelEditor(camera, wallTexture, playerTexture, enemyTexture);
+        levelEditor = new LevelEditor(camera, game.wallTexture, game.playerTexture, game.enemyTexture);
         level = levelEditor.loadLevel("levels/level1.bt");
         initializeNewGame();
     }
@@ -92,9 +85,11 @@ public class GameScreen implements Screen {
         game.batch.begin();
 
         level.players.forEach(player ->
-                game.batch.draw(player.texture(), player.rectangle().x, player.rectangle().y, player.rectangle().width, player.rectangle().height));
+                rotateByDegrees(player.texture(), calculateDegree(player.lastMove()), player.rectangle().x, player.rectangle().y, player.rectangle().width, player.rectangle().height)
+                        .draw(game.batch));
         level.enemies.forEach(enemy ->
-                game.batch.draw(enemy.texture(), enemy.rectangle().x, enemy.rectangle().y, enemy.rectangle().width, enemy.rectangle().height));
+                rotateByDegrees(enemy.texture(), calculateDegree(enemy.lastMove()), enemy.rectangle().x, enemy.rectangle().y, enemy.rectangle().width, enemy.rectangle().height)
+                        .draw(game.batch));
         level.walls.forEach(wall ->
                 game.batch.draw(wall.texture(), wall.rectangle().x, wall.rectangle().y, wall.rectangle().width, wall.rectangle().height));
         game.textFont.draw(game.batch, "Zeit: " + calculateRemainingSeconds(), 100, camera.viewportHeight);
@@ -110,7 +105,8 @@ public class GameScreen implements Screen {
                         ? "Ab zu Level Nr." + (levelNr + 1)
                         : "Du hast alle Levels geschafft!", 350, 200);
             }
-            if (levelFinishedTime.plusSeconds(2).isBefore(LocalTime.now()) && Gdx.input.isKeyPressed(Keys.ANY_KEY)) {
+            if (levelFinishedTime.plusSeconds(1).isBefore(LocalTime.now())
+                && Gdx.input.isKeyPressed(Keys.ANY_KEY)) {
                 if (gameWon && levelNr < TOTAL_LEVELS) {
                     levelNr++;
                     initializeNewGame();
@@ -125,6 +121,19 @@ public class GameScreen implements Screen {
         if (!isLevelFinished()) {
             handleInputs();
         }
+    }
+
+    static float calculateDegree(Vector2 vector2) {
+        return (float) (Math.atan2(vector2.y, vector2.x) * 180 / Math.PI) - 90;
+    }
+
+    private static Sprite rotateByDegrees(Texture texture, float degrees, float x, float y, float width, float height) {
+        Sprite sprite = new Sprite(texture);
+        sprite.setPosition(x, y);
+        sprite.setSize(width, height);
+        sprite.setOrigin((width/2f), (height/2f));
+        sprite.rotate(degrees);
+        return sprite;
     }
 
     private boolean isLevelFinished() {
@@ -199,6 +208,7 @@ public class GameScreen implements Screen {
         if (isMovePossible(entity, move)) {
             entity.rectangle().x += move.x;
             entity.rectangle().y += move.y;
+            entity.lastMove().set(new Vector2(move.x, move.y));
             if (entity.entityType() == EntityType.PLAYER) {
                 Gdx.app.debug(entity.name(),
                         "New position x: " + entity.rectangle().x
@@ -268,9 +278,6 @@ public class GameScreen implements Screen {
     @Override
     public void dispose() {
         // dispose of all the native resources
-        playerTexture.dispose();
-        enemyTexture.dispose();
-        wallTexture.dispose();
         sound1.dispose();
         sound2.dispose();
     }

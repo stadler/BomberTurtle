@@ -3,6 +3,7 @@ package com.github.stadler.bomberturtle;
 import com.badlogic.gdx.graphics.Camera;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.math.Rectangle;
+import com.badlogic.gdx.math.Vector2;
 
 import java.io.IOException;
 import java.io.UncheckedIOException;
@@ -54,17 +55,20 @@ public class LevelEditor {
                             new Entity("Wall",
                                     EntityType.WALL,
                                     wallTexture,
-                                    createRectangle(BLOCK_SIZE, BLOCK_SIZE, startX, startY)));
+                                    createRectangle(BLOCK_SIZE, BLOCK_SIZE, startX, startY),
+                                    new Vector2(0, 0)));
                     case EntityType.PLAYER -> level.players.add(
                             new Entity("Player" + (level.players.size() + 1),
                                     EntityType.PLAYER,
                                     playerTexture,
-                                    createRectangle(BLOCK_SIZE - 1, BLOCK_SIZE - 1, startX, startY)));
+                                    createRectangle(BLOCK_SIZE - 1, BLOCK_SIZE - 1, startX, startY),
+                                    new Vector2(0, 0)));
                     case EntityType.ENEMY -> level.enemies.add(
                             new Entity("Enemy" + (level.enemies.size() + 1),
                                     EntityType.ENEMY,
                                     enemyTexture,
-                                    createRectangle(BLOCK_SIZE - 1, BLOCK_SIZE - 1, startX, startY)));
+                                    createRectangle(BLOCK_SIZE - 1, BLOCK_SIZE - 1, startX, startY),
+                                    new Vector2(0, 0)));
                 }
             }
         }
