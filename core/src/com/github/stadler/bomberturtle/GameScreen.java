@@ -108,9 +108,9 @@ public class GameScreen implements Screen {
             if (gameWon) {
                 game.textFont.draw(game.batch, levelNr < TOTAL_LEVELS
                         ? "Ab zu Level Nr." + (levelNr + 1)
-                        : "Du hast alle Levels geschafft!", 300, 200);
+                        : "Du hast alle Levels geschafft!", 350, 200);
             }
-            if (levelFinishedTime.plusSeconds(2).isBefore(LocalTime.now())) {
+            if (levelFinishedTime.plusSeconds(2).isBefore(LocalTime.now()) && Gdx.input.isKeyPressed(Keys.ANY_KEY)) {
                 if (gameWon && levelNr < TOTAL_LEVELS) {
                     levelNr++;
                     initializeNewGame();
