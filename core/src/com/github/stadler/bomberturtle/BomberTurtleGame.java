@@ -3,6 +3,7 @@ package com.github.stadler.bomberturtle;
 import com.badlogic.gdx.Application;
 import com.badlogic.gdx.Game;
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator;
@@ -29,6 +30,7 @@ public class BomberTurtleGame extends Game {
         FreeTypeFontGenerator fontGenerator = new FreeTypeFontGenerator(Gdx.files.internal(path));
         FreeTypeFontParameter fontParameter = new FreeTypeFontParameter();
         fontParameter.size = size;
+        fontParameter.shadowColor = Color.DARK_GRAY;
         return fontGenerator.generateFont(fontParameter);
     }
 

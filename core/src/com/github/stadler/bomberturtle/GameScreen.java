@@ -9,8 +9,9 @@ import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.utils.ScreenUtils;
 
-import java.time.LocalDateTime;
+import java.time.Duration;
 import java.time.LocalTime;
+import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
 import java.util.List;
 
@@ -19,8 +20,9 @@ import static com.github.stadler.bomberturtle.LevelEditor.BLOCK_SIZE;
 
 public class GameScreen implements Screen {
 
-    public static final float SOUND_VOLUME = 0.0f;
-    public static final int TOTAL_LEVELS = 2;
+    public static final float SOUND_VOLUME = 0.5f;
+    public static final int TOTAL_LEVELS = 3;
+    private static final Duration GAME_TIME = Duration.of(10, ChronoUnit.SECONDS);
     public static final float MOVE_AMOUNT = BLOCK_SIZE / 10f;
     public static final Vector2 MOVE_LEFT = new Vector2(-MOVE_AMOUNT, 0);
     public static final Vector2 MOVE_RIGHT = new Vector2(MOVE_AMOUNT, 0);
@@ -35,10 +37,13 @@ public class GameScreen implements Screen {
     private final Texture enemyTexture;
     private final Sound sound1;
     private final Sound sound2;
+    private Sound currentSound;
     private Level level;
     private int levelNr = 1;
-    private LocalDateTime gameFinishedTs = null;
-    private Sound currentSound;
+    private LocalTime startTime;
+    private LocalTime levelFinishedTime = null;
+    private boolean gameWon = false;
+    private boolean gameLost = false;
 
 
     public GameScreen(final BomberTurtleGame game) {
@@ -60,6 +65,16 @@ public class GameScreen implements Screen {
         // Load level
         levelEditor = new LevelEditor(camera, wallTexture, playerTexture, enemyTexture);
         level = levelEditor.loadLevel("levels/level1.bt");
+        initializeNewGame();
+    }
+
+    private void initializeNewGame() {
+        startTime = LocalTime.now();
+        gameWon = false;
+        gameLost = false;
+        levelFinishedTime = null;
+        level = levelEditor.loadLevel("levels/level" + levelNr + ".bt");
+        switchSound();
     }
 
     @Override
@@ -82,35 +97,47 @@ public class GameScreen implements Screen {
                 game.batch.draw(enemy.texture(), enemy.rectangle().x, enemy.rectangle().y, enemy.rectangle().width, enemy.rectangle().height));
         level.walls.forEach(wall ->
                 game.batch.draw(wall.texture(), wall.rectangle().x, wall.rectangle().y, wall.rectangle().width, wall.rectangle().height));
-        if (gameFinishedTs != null) {
-            game.titleFont.draw(game.batch, "Gewonnen!", 300, 300);
+        game.textFont.draw(game.batch, "Zeit: " + calculateRemainingSeconds(), 100, camera.viewportHeight);
+
+        if (!isLevelFinished() && calculateRemainingSeconds() <= 0) {
+            gameWon = true;
+            levelFinishedTime = LocalTime.now();
         }
-        game.batch.end();
-
-        handleInputs();
-    }
-
-    private void handleInputs() {
-        if (gameFinishedTs != null) {
-            if (gameFinishedTs.plusSeconds(1).isBefore(LocalDateTime.now())) {
-                if (levelNr < TOTAL_LEVELS) {
+        if (isLevelFinished()) {
+            game.titleFont.draw(game.batch, gameWon ? "Gewonnen!" : "Game Over", 300, 300);
+            if (gameWon) {
+                game.textFont.draw(game.batch, levelNr < TOTAL_LEVELS
+                        ? "Ab zu Level Nr." + (levelNr + 1)
+                        : "Du hast alle Levels geschafft!", 300, 200);
+            }
+            if (levelFinishedTime.plusSeconds(2).isBefore(LocalTime.now())) {
+                if (gameWon && levelNr < TOTAL_LEVELS) {
                     levelNr++;
-                    gameFinishedTs = null;
-                    currentSound.pause();
-                    if (levelNr % 2 == 0) {
-                        currentSound = sound2;
-                    } else {
-                        currentSound = sound1;
-                    }
-                    currentSound.play(SOUND_VOLUME);
-                    level = levelEditor.loadLevel("levels/level" + levelNr + ".bt");
+                    initializeNewGame();
                 } else {
                     game.setScreen(new MainMenuScreen(game));
                     dispose();
                 }
             }
-            return;
         }
+        game.batch.end();
+
+        if (!isLevelFinished()) {
+            handleInputs();
+        }
+    }
+
+    private boolean isLevelFinished() {
+        return levelFinishedTime != null;
+    }
+
+    private long calculateRemainingSeconds() {
+        LocalTime endTime = startTime.plus(GAME_TIME);
+        Duration remainingTime = Duration.between(isLevelFinished() ? levelFinishedTime : LocalTime.now(), endTime);
+        return remainingTime.toSeconds();
+    }
+
+    private void handleInputs() {
         // process user input
         KeyBinding keyBindingPlayer1 = new KeyBinding(Keys.LEFT, Keys.RIGHT, Keys.UP, Keys.DOWN);
         KeyBinding keyBindingPlayer2 = new KeyBinding(Keys.A, Keys.D, Keys.W, Keys.S);
@@ -126,11 +153,22 @@ public class GameScreen implements Screen {
         for (int enemyNr = 0; enemyNr < enemies.size(); enemyNr++) {
             moveEnemy(enemies.get(enemyNr), enemyNr + 1);
         }
+    }
 
+    private void switchSound() {
+        currentSound.stop();
+        if (levelNr % 2 == 0) {
+            currentSound = sound2;
+        } else {
+            currentSound = sound1;
+        }
+        long soundId = currentSound.play(SOUND_VOLUME);
+        currentSound.setLooping(soundId, true);
+        currentSound.setPitch(soundId, 2);
     }
 
     private void moveEnemy(Entity enemy, int enemyNr) {
-        int currentDirection = (LocalTime.now().getSecond() + enemyNr) % 4;
+        int currentDirection = (LocalTime.now().getSecond() / 2 + enemyNr) % 4;
         if (currentDirection < 1) {
             doFirstPossibleMove(enemy, MOVE_RIGHT, MOVE_DOWN, MOVE_LEFT, MOVE_UP);
         } else if (currentDirection < 2) {
@@ -177,7 +215,8 @@ public class GameScreen implements Screen {
         }
         if (others.stream()
                 .anyMatch(otherEntity -> doEntitiesCollide(entity.rectangle(), otherEntity.rectangle(), move))) {
-            gameFinishedTs = LocalDateTime.now();
+            gameLost = true;
+            levelFinishedTime = LocalTime.now();
         }
 
     }
@@ -187,9 +226,9 @@ public class GameScreen implements Screen {
         Rectangle newRectangle = new Rectangle(rectangle).setPosition(rectangle.getPosition(new Vector2()).add(move));
         Rectangle viewport = new Rectangle(-1, -1, camera.viewportWidth + 1, camera.viewportHeight + 1);
         return viewport.contains(newRectangle)
-               && level.walls
-                       .stream()
-                       .noneMatch(wall -> newRectangle.overlaps(wall.rectangle()));
+                && level.walls
+                .stream()
+                .noneMatch(wall -> newRectangle.overlaps(wall.rectangle()));
     }
 
     private static boolean doEntitiesCollide(Rectangle entity, Rectangle otherEntity, Vector2 move) {
@@ -202,15 +241,13 @@ public class GameScreen implements Screen {
     }
 
     @Override
-    public void show() {
-        long soundId = currentSound.play(SOUND_VOLUME);
-        currentSound.setLooping(soundId, true);
-        currentSound.setPitch(soundId, 2);
+    public void resize(int i, int i1) {
+
     }
 
     @Override
-    public void resize(int i, int i1) {
-
+    public void show() {
+        currentSound.resume();
     }
 
     @Override
