@@ -35,7 +35,7 @@ public class MainMenuScreen implements Screen {
         game.batch.setProjectionMatrix(camera.combined);
 
         game.batch.begin();
-        game.titleFont.draw(game.batch, "Willkommen bei Bomber Turtle!!! ", 50, 200);
+        game.titleFont.draw(game.batch, "Willkommen bei Bomber Turtle ", 50, 200);
         game.textFont.draw(game.batch, "Drücke eine beliebige Taste zum starten!", 250, 100);
         for (int currentX = 0; currentX < camera.viewportWidth; currentX += 50) {
             game.batch.draw(game.wallTexture, currentX, 250, 50, 50);
