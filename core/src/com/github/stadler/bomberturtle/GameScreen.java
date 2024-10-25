@@ -30,7 +30,7 @@ public class GameScreen implements Screen {
     public static final float SOUND_VOLUME = 0.5f;
     public static final int TOTAL_LEVELS = 4;
     private static final Duration GAME_TIME = Duration.of(15, ChronoUnit.SECONDS);
-    public static final float MOVE_AMOUNT = BLOCK_SIZE / 10f;
+    public static final float MOVE_AMOUNT = BLOCK_SIZE / 20f;
     private final BomberTurtleGame game;
     private final OrthographicCamera camera;
     private final LevelEditor levelEditor;
@@ -172,11 +172,11 @@ public class GameScreen implements Screen {
     }
 
     private void moveEnemy(Entity enemy, int enemyNr) {
-//        if (enemyNr % 2 == 0) {
-        moveWithRandomDirection(enemy, enemyNr);
-//        } else {
-//            moveWithJaegerInstinct(enemy, enemyNr);
-//        }
+        if (enemyNr % 4 != 3) {
+            moveWithRandomDirection(enemy, enemyNr);
+        } else {
+            moveWithJaegerInstinct(enemy, enemyNr);
+        }
     }
 
     private void moveWithJaegerInstinct(Entity enemy, int enemyNr) {
