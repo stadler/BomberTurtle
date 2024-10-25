@@ -4,7 +4,6 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.audio.Sound;
 import com.badlogic.gdx.graphics.OrthographicCamera;
-import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector2;
@@ -29,7 +28,7 @@ import static com.github.stadler.bomberturtle.LevelEditor.BLOCK_SIZE;
 public class GameScreen implements Screen {
 
     public static final float SOUND_VOLUME = 0.5f;
-    public static final int TOTAL_LEVELS = 3;
+    public static final int TOTAL_LEVELS = 4;
     private static final Duration GAME_TIME = Duration.of(15, ChronoUnit.SECONDS);
     public static final float MOVE_AMOUNT = BLOCK_SIZE / 10f;
     private final BomberTurtleGame game;
@@ -58,7 +57,7 @@ public class GameScreen implements Screen {
         camera.setToOrtho(false, 800, 600);
 
         // Load level
-        levelEditor = new LevelEditor(camera, game.wallTexture, game.playerTexture, game.enemyTexture);
+        levelEditor = new LevelEditor(camera, game.wallTexture, game.playerTextures, game.enemyTexture);
         level = levelEditor.loadLevel("levels/level1.bt");
         initializeNewGame();
     }

@@ -21,13 +21,13 @@ public class LevelEditor {
     private static final int LEVEL_WIDTH = 16;
     private final Camera camera;
     private final Texture wallTexture;
-    private final Texture playerTexture;
+    private final List<Texture> playerTextures;
     private final Texture enemyTexture;
 
-    LevelEditor(Camera camera, Texture wallTexture, Texture playerTexture, Texture enemyTexture) {
+    LevelEditor(Camera camera, Texture wallTexture, List<Texture> playerTextures, Texture enemyTexture) {
         this.camera = camera;
         this.wallTexture = wallTexture;
-        this.playerTexture = playerTexture;
+        this.playerTextures = playerTextures;
         this.enemyTexture = enemyTexture;
     }
 
@@ -60,7 +60,7 @@ public class LevelEditor {
                     case EntityType.PLAYER -> level.players.add(
                             new Entity("Player" + (level.players.size() + 1),
                                     EntityType.PLAYER,
-                                    playerTexture,
+                                    getPlayerTexture(level.players.size() + 1),
                                     createRectangle(BLOCK_SIZE - 1, BLOCK_SIZE - 1, startX, startY),
                                     new Vector2(0, 0)));
                     case EntityType.ENEMY -> level.enemies.add(
@@ -73,6 +73,10 @@ public class LevelEditor {
             }
         }
         return level;
+    }
+
+    private Texture getPlayerTexture(int index) {
+        return playerTextures.get(index % 3);
     }
 
     private void validateRows(List<String> rows, String levelFile) {

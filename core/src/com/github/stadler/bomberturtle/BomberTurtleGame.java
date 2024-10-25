@@ -10,12 +10,14 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator;
 import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator.FreeTypeFontParameter;
 
+import java.util.List;
+
 public class BomberTurtleGame extends Game {
     SpriteBatch batch;
     BitmapFont titleFont;
     BitmapFont textFont;
     Texture wallTexture;
-    Texture playerTexture;
+    List<Texture> playerTextures;
     Texture enemyTexture;
 
     @Override
@@ -26,7 +28,10 @@ public class BomberTurtleGame extends Game {
 
         // Textures
         wallTexture = new Texture("wall.png");
-        playerTexture = new Texture("Bombe.png");
+        playerTextures = List.of(
+                new Texture("Bombe_blau.png"),
+                new Texture("Bombe_grün.png"),
+                new Texture("Bombe_rot.png"));
         enemyTexture = new Texture("Schilki.png");
 
         // Fonts
@@ -53,7 +58,7 @@ public class BomberTurtleGame extends Game {
     public void dispose() {
         batch.dispose();
 
-        playerTexture.dispose();
+        playerTextures.forEach(pt -> pt.dispose());
         enemyTexture.dispose();
         wallTexture.dispose();
 

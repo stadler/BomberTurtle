@@ -41,7 +41,7 @@ public class MainMenuScreen implements Screen {
             game.batch.draw(game.wallTexture, currentX, 250, 50, 50);
         }
         game.batch.draw(game.enemyTexture, 200, 300, 100, 100);;
-        game.batch.draw(game.playerTexture, 600-60, 300, 100, 100);;
+        game.batch.draw(game.playerTextures.get(0), 600-60, 300, 100, 100);;
         game.batch.end();
 
         if ((Gdx.input.isTouched() || Gdx.input.isKeyPressed(ANY_KEY))
