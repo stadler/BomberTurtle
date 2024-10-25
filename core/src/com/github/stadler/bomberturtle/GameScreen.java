@@ -172,11 +172,11 @@ public class GameScreen implements Screen {
     }
 
     private void moveEnemy(Entity enemy, int enemyNr) {
-        if (enemyNr % 2 == 0) {
-            moveWithRandomDirection(enemy, enemyNr);
-        } else {
-            moveWithJaegerInstinct(enemy, enemyNr);
-        }
+//        if (enemyNr % 2 == 0) {
+        moveWithRandomDirection(enemy, enemyNr);
+//        } else {
+//            moveWithJaegerInstinct(enemy, enemyNr);
+//        }
     }
 
     private void moveWithJaegerInstinct(Entity enemy, int enemyNr) {
@@ -251,10 +251,31 @@ public class GameScreen implements Screen {
     private boolean isMovePossible(Entity entity, Vector2 move) {
         Rectangle rectangle = entity.rectangle();
         Rectangle newRectangle = new Rectangle(rectangle).setPosition(rectangle.getPosition(new Vector2()).add(move));
-        Rectangle viewport = new Rectangle(-1, -1, camera.viewportWidth + 1, camera.viewportHeight + 1);
+        ajustEntityRectangleOnScreenLeave(newRectangle);
         return move.len() > 0f
-                && viewport.contains(newRectangle)
-                && level.walls
+                && doesNotCollideWithWall(newRectangle);
+    }
+
+    private void ajustEntityRectangleOnScreenLeave(Rectangle newRectangle) {
+        Rectangle viewport = new Rectangle(-1, -1, camera.viewportWidth + 1, camera.viewportHeight + 1);
+        if (!viewport.contains(newRectangle)) {
+            if (newRectangle.x < -1) {
+                newRectangle.x += camera.viewportWidth;
+            }
+            if (newRectangle.x > camera.viewportWidth - newRectangle.width) {
+                newRectangle.x -= camera.viewportWidth;
+            }
+            if (newRectangle.y < -1) {
+                newRectangle.y += camera.viewportHeight;
+            }
+            if (newRectangle.y > camera.viewportHeight + 1) {
+                newRectangle.y -= camera.viewportHeight;
+            }
+        }
+    }
+
+    private boolean doesNotCollideWithWall(Rectangle newRectangle) {
+        return level.walls
                 .stream()
                 .noneMatch(wall -> newRectangle.overlaps(wall.rectangle()));
     }
@@ -262,6 +283,7 @@ public class GameScreen implements Screen {
     private void moveEntity(Entity entity, Vector2 move) {
         entity.rectangle().x += move.x;
         entity.rectangle().y += move.y;
+        ajustEntityRectangleOnScreenLeave(entity.rectangle());
         entity.lastMove().set(new Vector2(move.x, move.y));
         if (entity.entityType() == EntityType.PLAYER) {
             Gdx.app.debug(entity.name(),
