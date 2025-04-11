@@ -58,7 +58,7 @@ public class GameScreen implements Screen {
 
         // Load level
         levelEditor = new LevelEditor(camera, game.wallTexture, game.playerTextures, game.enemyTexture);
-        level = levelEditor.loadLevel("levels/level1.bt");
+        level = levelEditor.loadLevel("levels/level1.bt", game.getSelectedPlayers());
         initializeNewGame();
     }
 
@@ -66,8 +66,8 @@ public class GameScreen implements Screen {
         startTime = LocalTime.now();
         gameWon = false;
         levelFinishedTime = null;
-        level = levelEditor.loadLevel("levels/level" + levelNr + ".bt");
-        randomOffset = random.nextInt(3);
+        level = levelEditor.loadLevel("levels/level" + levelNr + ".bt", game.getSelectedPlayers());
+        randomOffset = random.nextInt(game.getSelectedPlayers());
         switchSound();
     }
 
@@ -193,7 +193,7 @@ public class GameScreen implements Screen {
     }
 
     private void moveWithJaegerInstinct(MovableEntity enemy, int enemyNr) {
-        Entity pray = level.players.get((randomOffset + enemyNr - 1) % 3);
+        Entity pray = level.players.get((randomOffset + enemyNr - 1) % game.getSelectedPlayers());
         Vector2 nextMove = new Vector2(0, 0);
         if (enemy.getRectangle().x < pray.getRectangle().x) {
             nextMove.x = MOVE_AMOUNT;

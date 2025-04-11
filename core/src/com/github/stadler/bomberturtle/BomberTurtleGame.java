@@ -9,6 +9,8 @@ import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator;
 import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator.FreeTypeFontParameter;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.util.List;
 
@@ -20,6 +22,9 @@ public class BomberTurtleGame extends Game {
     List<Texture> playerTextures;
     Texture enemyTexture;
     Texture miniBombTexture;
+    @Getter
+    @Setter
+    private int selectedPlayers = 1;
 
     @Override
     public void create() {
@@ -60,7 +65,7 @@ public class BomberTurtleGame extends Game {
     public void dispose() {
         batch.dispose();
 
-        playerTextures.forEach(pt -> pt.dispose());
+        playerTextures.forEach(Texture::dispose);
         enemyTexture.dispose();
         wallTexture.dispose();
         miniBombTexture.dispose();

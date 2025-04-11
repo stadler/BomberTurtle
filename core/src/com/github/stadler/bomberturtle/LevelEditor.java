@@ -32,7 +32,7 @@ public class LevelEditor {
         this.enemyTexture = enemyTexture;
     }
 
-    public Level loadLevel(String levelPath) {
+    public Level loadLevel(String levelPath, int selectedPlayers) {
         List<String> levelLines;
         try {
             levelLines = Files.readAllLines(Paths.get(levelPath));
@@ -40,10 +40,11 @@ public class LevelEditor {
             throw new UncheckedIOException("Failed to read level: " + levelPath, e);
         }
         validateRows(levelLines, levelPath);
-        return createLevel(levelLines);
+        return createLevel(levelLines, selectedPlayers);
     }
 
-    private Level createLevel(List<String> rows) {
+    private Level createLevel(List<String> rows, int selectedPlayers) {
+        int currentPlayers = 0;
         Level level = new Level();
         for (int rowNr = 1; rowNr <= LEVEL_HEIGHT; rowNr++) {
             String row = rows.get(11 - (rowNr - 1));
@@ -57,13 +58,18 @@ public class LevelEditor {
                                     EntityType.WALL,
                                     wallTexture,
                                     createRectangle(BLOCK_SIZE, BLOCK_SIZE, startX, startY)));
-                    case EntityType.PLAYER -> level.players.add(
-                            new PlayerEntity("Player" + (level.players.size() + 1),
-                                    EntityType.PLAYER,
-                                    getPlayerTexture(level.players.size() + 1),
-                                    createRectangle(BLOCK_SIZE - 1, BLOCK_SIZE - 1, startX, startY),
-                                    new Vector2(0, 0),
-                                    Instant.now().minus(PlayerEntity.BOMB_DELAY)));
+                    case EntityType.PLAYER -> {
+                        if (currentPlayers < selectedPlayers) {
+                            currentPlayers++;
+                            level.players.add(
+                                    new PlayerEntity("Player" + (level.players.size() + 1),
+                                            EntityType.PLAYER,
+                                            getPlayerTexture(level.players.size() + 1),
+                                            createRectangle(BLOCK_SIZE - 1, BLOCK_SIZE - 1, startX, startY),
+                                            new Vector2(0, 0),
+                                            Instant.now().minus(PlayerEntity.BOMB_DELAY)));
+                        }
+                    }
                     case EntityType.ENEMY -> level.enemies.add(
                             new MovableEntity("Enemy" + (level.enemies.size() + 1),
                                     EntityType.ENEMY,
