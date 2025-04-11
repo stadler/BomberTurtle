@@ -5,7 +5,8 @@ import java.util.List;
 
 public class Level {
     List<Entity> walls = new ArrayList<>();
-    List<Entity> players = new ArrayList<>();
-    List<Entity> enemies = new ArrayList<>();
+    List<PlayerEntity> players = new ArrayList<>();
+    List<MovableEntity> enemies = new ArrayList<>();
+    List<Entity> miniBombs = new ArrayList<>();
 
 }

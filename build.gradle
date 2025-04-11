@@ -1,6 +1,4 @@
 buildscript {
-    
-
     repositories {
         mavenLocal()
         mavenCentral()
@@ -9,13 +7,13 @@ buildscript {
         google()
     }
     dependencies {
-        
-
+        classpath("io.freefair.lombok:io.freefair.lombok.gradle.plugin:8.12.1")
     }
 }
 
 allprojects {
     apply plugin: "eclipse"
+    apply plugin: "io.freefair.lombok"
 
     version = '1.0'
     ext {
@@ -61,7 +59,6 @@ project(":core") {
         api "com.badlogicgames.gdx:gdx-freetype:$gdxVersion"
         implementation "org.junit.jupiter:junit-jupiter:$junitVersion"
         runtimeOnly "org.junit.platform:junit-platform-launcher"
-
-
     }
+
 }

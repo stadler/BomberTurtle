@@ -88,7 +88,8 @@ public class GameScreen implements Screen {
         level.players.forEach(this::drawEntity);
         level.enemies.forEach(this::drawEntity);
         level.walls.forEach(wall ->
-                game.batch.draw(wall.texture(), wall.rectangle().x, wall.rectangle().y, wall.rectangle().width, wall.rectangle().height));
+                game.batch.draw(wall.getTexture(), wall.getRectangle().x, wall.getRectangle().y, wall.getRectangle().width, wall.getRectangle().height));
+        level.miniBombs.forEach(this::drawEntity);
         game.textFont.draw(game.batch, "Zeit: " + calculateRemainingSeconds(), 100, camera.viewportHeight);
 
         if (!isLevelFinished() && calculateRemainingSeconds() <= 0) {
@@ -121,13 +122,22 @@ public class GameScreen implements Screen {
     }
 
     private void drawEntity(Entity entity) {
-        game.batch.draw(new Sprite(entity.texture()),
-                entity.rectangle().x, entity.rectangle().y,
-                entity.rectangle().width / 2, entity.rectangle().height / 2f,
-                entity.rectangle().width, entity.rectangle().height, 1, 1, calculateDegree(entity.lastMove()));
+        Vector2 lastMove = new Vector2(0f, 0f);
+        if (entity instanceof MovableEntity me) {
+            lastMove = me.getLastMove();
+        }
+        game.batch.draw(new Sprite(entity.getTexture()),
+                entity.getRectangle().x, entity.getRectangle().y,
+                entity.getRectangle().width / 2, entity.getRectangle().height / 2f,
+                entity.getRectangle().width, entity.getRectangle().height,
+                1, 1,
+                calculateDegree(lastMove));
     }
 
     static float calculateDegree(Vector2 vector2) {
+        if (vector2 == null) {
+            return 0;
+        }
         return (float) (Math.atan2(vector2.y, vector2.x) * 180 / Math.PI) - 90;
     }
 
@@ -143,17 +153,20 @@ public class GameScreen implements Screen {
 
     private void handleInputs() {
         // process user input
-        KeyBinding keyBindingPlayer1 = new KeyBinding(Keys.LEFT, Keys.RIGHT, Keys.UP, Keys.DOWN);
-        KeyBinding keyBindingPlayer2 = new KeyBinding(Keys.A, Keys.D, Keys.W, Keys.S);
-        KeyBinding keyBindingPlayer3 = new KeyBinding(Keys.G, Keys.J, Keys.Y, Keys.H);
-        handleDirectionsForEntity(level.players.get(0), keyBindingPlayer1);
+        if (Gdx.input.isKeyPressed(Keys.ESCAPE)) {
+            System.exit(0);
+        }
+        KeyBinding keyBindingPlayer1 = new KeyBinding(Keys.LEFT, Keys.RIGHT, Keys.UP, Keys.DOWN, Keys.SHIFT_RIGHT);
+        KeyBinding keyBindingPlayer2 = new KeyBinding(Keys.A, Keys.D, Keys.W, Keys.S, Keys.Q);
+        KeyBinding keyBindingPlayer3 = new KeyBinding(Keys.G, Keys.J, Keys.Y, Keys.H, Keys.T);
+        handleInputsForEntity(level.players.get(0), keyBindingPlayer1);
         if (level.players.size() > 1) {
-            handleDirectionsForEntity(level.players.get(1), keyBindingPlayer2);
+            handleInputsForEntity(level.players.get(1), keyBindingPlayer2);
         }
         if (level.players.size() > 2) {
-            handleDirectionsForEntity(level.players.get(2), keyBindingPlayer3);
+            handleInputsForEntity(level.players.get(2), keyBindingPlayer3);
         }
-        List<Entity> enemies = level.enemies;
+        List<MovableEntity> enemies = level.enemies;
         for (int enemyNr = 0; enemyNr < enemies.size(); enemyNr++) {
             moveEnemy(enemies.get(enemyNr), enemyNr + 1);
         }
@@ -171,7 +184,7 @@ public class GameScreen implements Screen {
         currentSound.setPitch(soundId, 2);
     }
 
-    private void moveEnemy(Entity enemy, int enemyNr) {
+    private void moveEnemy(MovableEntity enemy, int enemyNr) {
         if (enemyNr % 4 != 3) {
             moveWithRandomDirection(enemy, enemyNr);
         } else {
@@ -179,32 +192,32 @@ public class GameScreen implements Screen {
         }
     }
 
-    private void moveWithJaegerInstinct(Entity enemy, int enemyNr) {
+    private void moveWithJaegerInstinct(MovableEntity enemy, int enemyNr) {
         Entity pray = level.players.get((randomOffset + enemyNr - 1) % 3);
         Vector2 nextMove = new Vector2(0, 0);
-        if (enemy.rectangle().x < pray.rectangle().x) {
+        if (enemy.getRectangle().x < pray.getRectangle().x) {
             nextMove.x = MOVE_AMOUNT;
-        } else if (enemy.rectangle().x > pray.rectangle().x) {
+        } else if (enemy.getRectangle().x > pray.getRectangle().x) {
             nextMove.x = -MOVE_AMOUNT;
         }
-        if (enemy.rectangle().y < pray.rectangle().y) {
+        if (enemy.getRectangle().y < pray.getRectangle().y) {
             nextMove.y = MOVE_AMOUNT;
-        } else if (enemy.rectangle().y > pray.rectangle().y) {
+        } else if (enemy.getRectangle().y > pray.getRectangle().y) {
             nextMove.y = -MOVE_AMOUNT;
         }
         doFirstPossibleMove(enemy,
                 Stream.concat(calculatePermutations(nextMove),
-                                Stream.concat(Stream.of(enemy.lastMove()),
+                                Stream.concat(Stream.of(enemy.getLastMove()),
                                         createRandomMoves().stream()))
                         .toArray(Vector2[]::new));
     }
 
-    private void moveWithRandomDirection(Entity enemy, int enemyNr) {
+    private void moveWithRandomDirection(MovableEntity enemy, int enemyNr) {
         List<Vector2> alternativeMoves = createRandomMoves();
         // Change path from time to time
         if (!((LocalTime.now().getSecond() + enemyNr) % 2 == 0
                 && Instant.now().get(ChronoField.MILLI_OF_SECOND) < 40)) {
-            alternativeMoves.addFirst(enemy.lastMove());
+            alternativeMoves.addFirst(enemy.getLastMove());
         }
         doFirstPossibleMove(enemy, alternativeMoves.toArray(Vector2[]::new));
     }
@@ -218,7 +231,7 @@ public class GameScreen implements Screen {
         return alternativeMoves;
     }
 
-    private void handleDirectionsForEntity(Entity entity, KeyBinding keyBinding) {
+    private void handleInputsForEntity(PlayerEntity playerEntity, KeyBinding keyBinding) {
         // Must be factor of block size
         Vector2 nextMove = new Vector2(0, 0);
         if (Gdx.input.isKeyPressed(keyBinding.left())) {
@@ -233,15 +246,25 @@ public class GameScreen implements Screen {
         if (Gdx.input.isKeyPressed(keyBinding.down())) {
             nextMove.y = -MOVE_AMOUNT;
         }
+        if (Gdx.input.isKeyPressed(keyBinding.bomb())) {
+            if (playerEntity.getLastBomb().isBefore(Instant.now().minus(PlayerEntity.BOMB_DELAY))) {
+                level.miniBombs.add(new Entity("MiniBomb", EntityType.BOMB, game.miniBombTexture, calculateMiniBombRectangle(playerEntity.getRectangle())));
+                playerEntity.setLastBomb(Instant.now());
+            }
+        }
         // Move also if only one direction of the complete move works
-        doFirstPossibleMove(entity, calculatePermutations(nextMove).toArray(Vector2[]::new));
+        doFirstPossibleMove(playerEntity, calculatePermutations(nextMove).toArray(Vector2[]::new));
+    }
+
+    private static Rectangle calculateMiniBombRectangle(Rectangle rectangle) {
+        return new Rectangle(rectangle.x + rectangle.width / 3, rectangle.y, rectangle.width / 2, rectangle.height / 2);
     }
 
     private static Stream<Vector2> calculatePermutations(Vector2 move) {
         return Stream.of(new Vector2(move.x, move.y), new Vector2(move.x, 0), new Vector2(0, move.y));
     }
 
-    private void doFirstPossibleMove(Entity entity, Vector2... moves) {
+    private void doFirstPossibleMove(MovableEntity entity, Vector2... moves) {
         Arrays.stream(moves)
                 .filter(move -> isMovePossible(entity, move))
                 .findFirst()
@@ -249,7 +272,7 @@ public class GameScreen implements Screen {
     }
 
     private boolean isMovePossible(Entity entity, Vector2 move) {
-        Rectangle rectangle = entity.rectangle();
+        Rectangle rectangle = entity.getRectangle();
         Rectangle newRectangle = new Rectangle(rectangle).setPosition(rectangle.getPosition(new Vector2()).add(move));
         ajustEntityRectangleOnScreenLeave(newRectangle);
         return move.len() > 0f
@@ -277,33 +300,33 @@ public class GameScreen implements Screen {
     private boolean doesNotCollideWithWall(Rectangle newRectangle) {
         return level.walls
                 .stream()
-                .noneMatch(wall -> newRectangle.overlaps(wall.rectangle()));
+                .noneMatch(wall -> newRectangle.overlaps(wall.getRectangle()));
     }
 
-    private void moveEntity(Entity entity, Vector2 move) {
-        entity.rectangle().x += move.x;
-        entity.rectangle().y += move.y;
-        ajustEntityRectangleOnScreenLeave(entity.rectangle());
-        entity.lastMove().set(new Vector2(move.x, move.y));
-        if (entity.entityType() == EntityType.PLAYER) {
-            Gdx.app.debug(entity.name(),
-                    "New position x: " + entity.rectangle().x
-                            + ", y: " + entity.rectangle().y
+    private void moveEntity(MovableEntity entity, Vector2 move) {
+        entity.getRectangle().x += move.x;
+        entity.getRectangle().y += move.y;
+        ajustEntityRectangleOnScreenLeave(entity.getRectangle());
+        entity.getLastMove().set(new Vector2(move.x, move.y));
+        if (entity.getEntityType() == EntityType.PLAYER) {
+            Gdx.app.debug(entity.getName(),
+                    "New position x: " + entity.getRectangle().x
+                            + ", y: " + entity.getRectangle().y
                             + " after move: " + move);
         }
 
         checkForOtherEntities(entity);
     }
 
-    private void checkForOtherEntities(Entity entity) {
-        List<Entity> others = List.of();
-        if (entity.entityType() == EntityType.ENEMY) {
+    private void checkForOtherEntities(MovableEntity entity) {
+        List<? extends MovableEntity> others = List.of();
+        if (entity.getEntityType() == EntityType.ENEMY) {
             others = level.players;
-        } else if (entity.entityType() == EntityType.PLAYER) {
+        } else if (entity.getEntityType() == EntityType.PLAYER) {
             others = level.enemies;
         }
         if (others.stream()
-                .anyMatch(otherEntity -> entity.rectangle().overlaps(otherEntity.rectangle()))) {
+                .anyMatch(otherEntity -> entity.getRectangle().overlaps(otherEntity.getRectangle()))) {
             levelFinishedTime = LocalTime.now();
         }
     }

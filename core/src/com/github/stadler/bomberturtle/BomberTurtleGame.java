@@ -19,6 +19,7 @@ public class BomberTurtleGame extends Game {
     Texture wallTexture;
     List<Texture> playerTextures;
     Texture enemyTexture;
+    Texture miniBombTexture;
 
     @Override
     public void create() {
@@ -33,6 +34,7 @@ public class BomberTurtleGame extends Game {
                 new Texture("Bombe_grün.png"),
                 new Texture("Bombe_rot.png"));
         enemyTexture = new Texture("Schilki.png");
+        miniBombTexture = new Texture("MiniBombe.png");
 
         // Fonts
         titleFont = generateFont("fonts/Silkscreen/Silkscreen-Bold.ttf", 30);
@@ -61,6 +63,7 @@ public class BomberTurtleGame extends Game {
         playerTextures.forEach(pt -> pt.dispose());
         enemyTexture.dispose();
         wallTexture.dispose();
+        miniBombTexture.dispose();
 
         titleFont.dispose();
         textFont.dispose();

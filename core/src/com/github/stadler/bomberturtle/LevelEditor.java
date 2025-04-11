@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.time.Instant;
 import java.util.Arrays;
 import java.util.List;
 
@@ -55,16 +56,16 @@ public class LevelEditor {
                             new Entity("Wall",
                                     EntityType.WALL,
                                     wallTexture,
-                                    createRectangle(BLOCK_SIZE, BLOCK_SIZE, startX, startY),
-                                    new Vector2(0, 0)));
+                                    createRectangle(BLOCK_SIZE, BLOCK_SIZE, startX, startY)));
                     case EntityType.PLAYER -> level.players.add(
-                            new Entity("Player" + (level.players.size() + 1),
+                            new PlayerEntity("Player" + (level.players.size() + 1),
                                     EntityType.PLAYER,
                                     getPlayerTexture(level.players.size() + 1),
                                     createRectangle(BLOCK_SIZE - 1, BLOCK_SIZE - 1, startX, startY),
-                                    new Vector2(0, 0)));
+                                    new Vector2(0, 0),
+                                    Instant.now().minus(PlayerEntity.BOMB_DELAY)));
                     case EntityType.ENEMY -> level.enemies.add(
-                            new Entity("Enemy" + (level.enemies.size() + 1),
+                            new MovableEntity("Enemy" + (level.enemies.size() + 1),
                                     EntityType.ENEMY,
                                     enemyTexture,
                                     createRectangle(BLOCK_SIZE - 1, BLOCK_SIZE - 1, startX, startY),

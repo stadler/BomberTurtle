@@ -5,8 +5,9 @@ import java.util.Arrays;
 enum EntityType {
     PATH('.'),
     WALL('x'),
-    PLAYER('b'),
+    PLAYER('p'),
     ENEMY('s'),
+    BOMB('b'),
     UNKNOWN('?');
 
     final char entityCharacter;
