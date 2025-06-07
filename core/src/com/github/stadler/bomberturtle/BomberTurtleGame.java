@@ -15,6 +15,7 @@ import lombok.Setter;
 import java.util.List;
 
 public class BomberTurtleGame extends Game {
+
     SpriteBatch batch;
     BitmapFont titleFont;
     BitmapFont textFont;
@@ -43,7 +44,7 @@ public class BomberTurtleGame extends Game {
 
         // Fonts
         titleFont = generateFont("fonts/Silkscreen/Silkscreen-Bold.ttf", 30);
-        textFont = generateFont("fonts/Jersey_15_Charted/Jersey15Charted-Regular.ttf", 20);
+        textFont = generateFont("fonts/Silkscreen/Silkscreen-Regular.ttf", 20);
 
         this.setScreen(new MainMenuScreen(this));
     }
