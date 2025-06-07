@@ -46,7 +46,7 @@ public class GameScreen implements Screen {
     private boolean gameWon = false;
     private int randomOffset;
 
-    private List<Explosion> explosions = new ArrayList<>();
+    private final List<Explosion> explosions = new ArrayList<>();
 
     public GameScreen(final BomberTurtleGame game) {
         this.game = game;
@@ -88,6 +88,12 @@ public class GameScreen implements Screen {
         game.batch.setProjectionMatrix(camera.combined);
         game.batch.begin();
 
+        if (level.players.isEmpty()) {
+            setGameFinished(false);
+        }
+        if (level.enemies.isEmpty()) {
+            setGameFinished(true);
+        }
         level.players.forEach(this::drawEntity);
         level.enemies.forEach(this::drawEntity);
         level.walls.forEach(wall ->
@@ -96,23 +102,29 @@ public class GameScreen implements Screen {
         explosions.forEach(explosion -> {
             explosion.update(deltaTime);
             explosion.render(game.batch);
+            removeEntitiesInExplosion(explosion, level.players);
+            removeEntitiesInExplosion(explosion, level.enemies);
+            removeEntitiesInExplosion(explosion, level.walls);
         });
         explosions.removeAll(
                 explosions.stream()
                         .filter(Explosion::isRemove)
                         .toList());
-        game.textFont.draw(game.batch, "Zeit: " + calculateRemainingSeconds(), 100, camera.viewportHeight - 10);
+        if (!isLevelFinished()) {
+            if (calculateRemainingSeconds() <= 0) {
+                setGameFinished(true);
+            } else {
+                game.textFont.draw(game.batch, "Zeit: " + calculateRemainingSeconds(), 100, camera.viewportHeight - 10);
+            }
 
-        if (!isLevelFinished() && calculateRemainingSeconds() <= 0) {
-            gameWon = true;
-            levelFinishedTime = LocalTime.now();
-        }
-        if (isLevelFinished()) {
+        } else {
             game.titleFont.draw(game.batch, gameWon ? "Gewonnen!" : "Game Over", 300, 300);
             if (gameWon) {
-                game.textFont.draw(game.batch, levelNr < TOTAL_LEVELS
-                        ? "Ab zu Level Nr." + (levelNr + 1)
-                        : "Du hast alle Levels geschafft!", 150, 200);
+                if (levelNr < TOTAL_LEVELS) {
+                    game.textFont.draw(game.batch, "Ab zu Level Nr." + (levelNr + 1), 300, 200);
+                } else {
+                    game.textFont.draw(game.batch, "Du hast alle Levels geschafft!", 150, 200);
+                }
             }
             if (levelFinishedTime.plusSeconds(1).isBefore(LocalTime.now())
                     && Gdx.input.isKeyPressed(Keys.ANY_KEY)) {
@@ -130,6 +142,19 @@ public class GameScreen implements Screen {
         if (!isLevelFinished()) {
             handleInputs();
         }
+    }
+
+    private void setGameFinished(boolean hasWon) {
+        gameWon = hasWon;
+        if (levelFinishedTime == null) {
+            levelFinishedTime = LocalTime.now();
+        }
+    }
+
+    private <T extends Entity> void removeEntitiesInExplosion(Explosion explosion, List<T> entities) {
+        entities.removeAll(entities.stream()
+                .filter(entity -> explosion.getRectangle().overlaps(entity.getRectangle()))
+                .toList());
     }
 
     private void drawEntity(Entity entity) {
@@ -158,7 +183,7 @@ public class GameScreen implements Screen {
 
     private long calculateRemainingSeconds() {
         LocalTime endTime = startTime.plus(GAME_TIME);
-        Duration remainingTime = Duration.between(isLevelFinished() ? levelFinishedTime : LocalTime.now(), endTime);
+        Duration remainingTime = Duration.between(LocalTime.now(), endTime);
         return remainingTime.toSeconds();
     }
 
@@ -170,17 +195,23 @@ public class GameScreen implements Screen {
         KeyBinding keyBindingPlayer1 = new KeyBinding(Keys.LEFT, Keys.RIGHT, Keys.UP, Keys.DOWN, Keys.SHIFT_RIGHT, Keys.SLASH);
         KeyBinding keyBindingPlayer2 = new KeyBinding(Keys.A, Keys.D, Keys.W, Keys.S, Keys.Q, Keys.E);
         KeyBinding keyBindingPlayer3 = new KeyBinding(Keys.G, Keys.J, Keys.Y, Keys.H, Keys.T, Keys.U);
-        handleInputsForEntity(level.players.get(0), keyBindingPlayer1);
-        if (level.players.size() > 1) {
-            handleInputsForEntity(level.players.get(1), keyBindingPlayer2);
-        }
-        if (level.players.size() > 2) {
-            handleInputsForEntity(level.players.get(2), keyBindingPlayer3);
-        }
+        handleInputsForPlayer(0, keyBindingPlayer1);
+        handleInputsForPlayer(1, keyBindingPlayer2);
+        handleInputsForPlayer(2, keyBindingPlayer3);
         List<MovableEntity> enemies = level.enemies;
         for (int enemyNr = 0; enemyNr < enemies.size(); enemyNr++) {
             moveEnemy(enemies.get(enemyNr), enemyNr + 1);
         }
+    }
+
+    private void handleInputsForPlayer(int playerNr, KeyBinding keyBindingPlayer2) {
+        if (playerExists(playerNr)) {
+            handleInputsForEntity(level.players.get(playerNr), keyBindingPlayer2);
+        }
+    }
+
+    private boolean playerExists(int playerNr) {
+        return level.players.size() > playerNr && level.players.get(playerNr) != null;
     }
 
     private void switchSound() {
@@ -204,7 +235,11 @@ public class GameScreen implements Screen {
     }
 
     private void moveWithJaegerInstinct(MovableEntity enemy, int enemyNr) {
-        Entity pray = level.players.get((randomOffset + enemyNr - 1) % game.getSelectedPlayers());
+        int victimPlayerNr = (randomOffset + enemyNr - 1) % game.getSelectedPlayers();
+        if (!playerExists(victimPlayerNr)) {
+            victimPlayerNr = (victimPlayerNr + 1) % game.getSelectedPlayers();
+        }
+        Entity pray = level.players.get(victimPlayerNr);
         Vector2 nextMove = new Vector2(0, 0);
         if (enemy.getRectangle().x < pray.getRectangle().x) {
             nextMove.x = MOVE_AMOUNT;
@@ -272,11 +307,9 @@ public class GameScreen implements Screen {
                     .filter(bomb -> bomb.getFromPlayer() == playerEntity)
                     .toList();
             explosions.addAll(bombsToIgnite.stream()
-                    .map(bomb -> new Explosion(bomb.getRectangle().x, bomb.getRectangle().y))
+                    .map(bomb -> new Explosion(bomb.getRectangle()))
                     .toList());
-
             level.miniBombs.removeAll(bombsToIgnite);
-
         }
         // Move also if only one direction of the complete move works
         doFirstPossibleMove(playerEntity, calculatePermutations(nextMove).toArray(Vector2[]::new));
@@ -353,7 +386,7 @@ public class GameScreen implements Screen {
         }
         if (others.stream()
                 .anyMatch(otherEntity -> entity.getRectangle().overlaps(otherEntity.getRectangle()))) {
-            levelFinishedTime = LocalTime.now();
+            setGameFinished(false);
         }
     }
 
