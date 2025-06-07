@@ -1,8 +1,10 @@
-package com.github.stadler.bomberturtle;
+package com.github.stadler.bomberturtle.entities;
+
+import lombok.Getter;
 
 import java.util.Arrays;
 
-enum EntityType {
+public enum EntityType {
     PATH('.'),
     WALL('x'),
     PLAYER('p'),
@@ -10,13 +12,14 @@ enum EntityType {
     BOMB('b'),
     UNKNOWN('?');
 
+    @Getter
     final char entityCharacter;
 
     EntityType(char entityCharacter) {
         this.entityCharacter = entityCharacter;
     }
 
-    static EntityType getEntityTypeForChar(char entityCharacter) {
+    public static EntityType getEntityTypeForChar(char entityCharacter) {
         return Arrays.stream(EntityType.values())
                 .filter(entityType -> entityType.entityCharacter == entityCharacter)
                 .findFirst()

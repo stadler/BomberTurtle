@@ -4,6 +4,10 @@ import com.badlogic.gdx.graphics.Camera;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector2;
+import com.github.stadler.bomberturtle.entities.Entity;
+import com.github.stadler.bomberturtle.entities.EntityType;
+import com.github.stadler.bomberturtle.entities.MovableEntity;
+import com.github.stadler.bomberturtle.entities.PlayerEntity;
 
 import java.io.IOException;
 import java.io.UncheckedIOException;
@@ -13,7 +17,7 @@ import java.time.Instant;
 import java.util.Arrays;
 import java.util.List;
 
-import static com.github.stadler.bomberturtle.EntityType.getEntityTypeForChar;
+import static com.github.stadler.bomberturtle.entities.EntityType.getEntityTypeForChar;
 
 public class LevelEditor {
 
@@ -98,7 +102,7 @@ public class LevelEditor {
             for (int colNr = 0; colNr < LEVEL_WIDTH; colNr++) {
                 char currentChar = row.charAt(colNr);
                 if (Arrays.stream(EntityType.values())
-                        .noneMatch(validEntityType -> validEntityType.entityCharacter == currentChar)) {
+                        .noneMatch(validEntityType -> validEntityType.getEntityCharacter() == currentChar)) {
                     throw new IllegalStateException("Invalid character in level: " + levelFile + " at row: " + rowNr + 1 + " col: " + colNr + 1);
                 }
             }

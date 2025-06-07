@@ -1,4 +1,4 @@
-package com.github.stadler.bomberturtle;
+package com.github.stadler.bomberturtle.entities;
 
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.math.Rectangle;
@@ -13,7 +13,7 @@ import java.time.Instant;
 @EqualsAndHashCode(callSuper=true)
 public class PlayerEntity extends MovableEntity {
 
-    public static final Duration BOMB_DELAY = Duration.ofSeconds(3);
+    public static final Duration BOMB_DELAY = Duration.ofSeconds(1);
 
     private Instant lastBomb;
 

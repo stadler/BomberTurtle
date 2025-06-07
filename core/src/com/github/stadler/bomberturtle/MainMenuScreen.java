@@ -70,7 +70,7 @@ public class MainMenuScreen implements Screen {
         if (player == (game.getSelectedPlayers())) {
             return "->";
         }
-        return "   ";
+        return "  ";
     }
 
     @Override

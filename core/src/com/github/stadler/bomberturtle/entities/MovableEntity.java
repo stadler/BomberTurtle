@@ -1,4 +1,4 @@
-package com.github.stadler.bomberturtle;
+package com.github.stadler.bomberturtle.entities;
 
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.math.Rectangle;
@@ -11,6 +11,9 @@ import lombok.EqualsAndHashCode;
 public class MovableEntity extends Entity {
 
     private Vector2 lastMove;
+
+    public MovableEntity() {
+    }
 
     public MovableEntity(String name, EntityType entityType, Texture texture, Rectangle rectangle, Vector2 lastMove) {
         super(name, entityType, texture, rectangle);

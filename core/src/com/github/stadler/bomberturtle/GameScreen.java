@@ -8,16 +8,14 @@ import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.utils.ScreenUtils;
+import com.github.stadler.bomberturtle.entities.*;
 
 import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalTime;
 import java.time.temporal.ChronoField;
 import java.time.temporal.ChronoUnit;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.Random;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
@@ -31,12 +29,15 @@ public class GameScreen implements Screen {
     public static final int TOTAL_LEVELS = 4;
     private static final Duration GAME_TIME = Duration.of(15, ChronoUnit.SECONDS);
     public static final float MOVE_AMOUNT = BLOCK_SIZE / 20f;
+
+    private final Random random = new Random();
+
     private final BomberTurtleGame game;
     private final OrthographicCamera camera;
     private final LevelEditor levelEditor;
     private final Sound sound1;
     private final Sound sound2;
-    private final Random random = new Random();
+
     private Sound currentSound;
     private Level level;
     private int levelNr = 1;
@@ -44,6 +45,8 @@ public class GameScreen implements Screen {
     private LocalTime levelFinishedTime = null;
     private boolean gameWon = false;
     private int randomOffset;
+
+    private List<Explosion> explosions = new ArrayList<>();
 
     public GameScreen(final BomberTurtleGame game) {
         this.game = game;
@@ -90,7 +93,15 @@ public class GameScreen implements Screen {
         level.walls.forEach(wall ->
                 game.batch.draw(wall.getTexture(), wall.getRectangle().x, wall.getRectangle().y, wall.getRectangle().width, wall.getRectangle().height));
         level.miniBombs.forEach(this::drawEntity);
-        game.textFont.draw(game.batch, "Zeit: " + calculateRemainingSeconds(), 100, camera.viewportHeight);
+        explosions.forEach(explosion -> {
+            explosion.update(deltaTime);
+            explosion.render(game.batch);
+        });
+        explosions.removeAll(
+                explosions.stream()
+                        .filter(Explosion::isRemove)
+                        .toList());
+        game.textFont.draw(game.batch, "Zeit: " + calculateRemainingSeconds(), 100, camera.viewportHeight - 10);
 
         if (!isLevelFinished() && calculateRemainingSeconds() <= 0) {
             gameWon = true;
@@ -101,7 +112,7 @@ public class GameScreen implements Screen {
             if (gameWon) {
                 game.textFont.draw(game.batch, levelNr < TOTAL_LEVELS
                         ? "Ab zu Level Nr." + (levelNr + 1)
-                        : "Du hast alle Levels geschafft!", 350, 200);
+                        : "Du hast alle Levels geschafft!", 150, 200);
             }
             if (levelFinishedTime.plusSeconds(1).isBefore(LocalTime.now())
                     && Gdx.input.isKeyPressed(Keys.ANY_KEY)) {
@@ -156,9 +167,9 @@ public class GameScreen implements Screen {
         if (Gdx.input.isKeyPressed(Keys.ESCAPE)) {
             System.exit(0);
         }
-        KeyBinding keyBindingPlayer1 = new KeyBinding(Keys.LEFT, Keys.RIGHT, Keys.UP, Keys.DOWN, Keys.SHIFT_RIGHT);
-        KeyBinding keyBindingPlayer2 = new KeyBinding(Keys.A, Keys.D, Keys.W, Keys.S, Keys.Q);
-        KeyBinding keyBindingPlayer3 = new KeyBinding(Keys.G, Keys.J, Keys.Y, Keys.H, Keys.T);
+        KeyBinding keyBindingPlayer1 = new KeyBinding(Keys.LEFT, Keys.RIGHT, Keys.UP, Keys.DOWN, Keys.SHIFT_RIGHT, Keys.SLASH);
+        KeyBinding keyBindingPlayer2 = new KeyBinding(Keys.A, Keys.D, Keys.W, Keys.S, Keys.Q, Keys.E);
+        KeyBinding keyBindingPlayer3 = new KeyBinding(Keys.G, Keys.J, Keys.Y, Keys.H, Keys.T, Keys.U);
         handleInputsForEntity(level.players.get(0), keyBindingPlayer1);
         if (level.players.size() > 1) {
             handleInputsForEntity(level.players.get(1), keyBindingPlayer2);
@@ -246,11 +257,26 @@ public class GameScreen implements Screen {
         if (Gdx.input.isKeyPressed(keyBinding.down())) {
             nextMove.y = -MOVE_AMOUNT;
         }
-        if (Gdx.input.isKeyPressed(keyBinding.bomb())) {
+        if (Gdx.input.isKeyPressed(keyBinding.dropBomb())) {
             if (playerEntity.getLastBomb().isBefore(Instant.now().minus(PlayerEntity.BOMB_DELAY))) {
-                level.miniBombs.add(new Entity("MiniBomb", EntityType.BOMB, game.miniBombTexture, calculateMiniBombRectangle(playerEntity.getRectangle())));
+                level.miniBombs.add(
+                        new BombEntity("MiniBomb", EntityType.BOMB,
+                                game.miniBombTexture,
+                                calculateMiniBombRectangle(playerEntity.getRectangle()),
+                                playerEntity));
                 playerEntity.setLastBomb(Instant.now());
             }
+        }
+        if (Gdx.input.isKeyPressed(keyBinding.igniteBomb())) {
+            List<BombEntity> bombsToIgnite = level.miniBombs.stream()
+                    .filter(bomb -> bomb.getFromPlayer() == playerEntity)
+                    .toList();
+            explosions.addAll(bombsToIgnite.stream()
+                    .map(bomb -> new Explosion(bomb.getRectangle().x, bomb.getRectangle().y))
+                    .toList());
+
+            level.miniBombs.removeAll(bombsToIgnite);
+
         }
         // Move also if only one direction of the complete move works
         doFirstPossibleMove(playerEntity, calculatePermutations(nextMove).toArray(Vector2[]::new));
@@ -332,7 +358,7 @@ public class GameScreen implements Screen {
     }
 
     @Override
-    public void resize(int i, int i1) {
+    public void resize(int x, int y) {
     }
 
     @Override
