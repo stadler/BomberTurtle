@@ -11,6 +11,7 @@ public class Entity {
     private EntityType entityType;
     private Texture texture;
     private Rectangle rectangle;
+    private boolean isVisible = true;
 
     public Entity() {
     }
@@ -25,4 +26,13 @@ public class Entity {
         this.texture = texture;
         this.rectangle = rectangle;
     }
+
+    public boolean isPlayer() {
+        return entityType == EntityType.PLAYER;
+    }
+
+    public boolean isEnemy() {
+        return entityType == EntityType.ENEMY;
+    }
+
 }

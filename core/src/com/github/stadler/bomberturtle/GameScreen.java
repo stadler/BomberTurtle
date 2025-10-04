@@ -110,6 +110,12 @@ public class GameScreen implements Screen {
                 explosions.stream()
                         .filter(Explosion::isRemove)
                         .toList());
+        if (level.enemies.stream().noneMatch(Entity::isVisible)) {
+            setGameFinished(true);
+        }
+        if (level.players.stream().noneMatch(Entity::isVisible)) {
+            setGameFinished(false);
+        }
         if (!isLevelFinished()) {
             if (calculateRemainingSeconds() <= 0) {
                 setGameFinished(true);
@@ -152,12 +158,15 @@ public class GameScreen implements Screen {
     }
 
     private <T extends Entity> void removeEntitiesInExplosion(Explosion explosion, List<T> entities) {
-        entities.removeAll(entities.stream()
+        entities.stream()
                 .filter(entity -> explosion.getRectangle().overlaps(entity.getRectangle()))
-                .toList());
+                .forEach(entity -> entity.setVisible(false));
     }
 
     private void drawEntity(Entity entity) {
+        if (!entity.isVisible()) {
+            return;
+        }
         Vector2 lastMove = new Vector2(0f, 0f);
         if (entity instanceof MovableEntity me) {
             lastMove = me.getLastMove();
@@ -278,6 +287,9 @@ public class GameScreen implements Screen {
     }
 
     private void handleInputsForEntity(PlayerEntity playerEntity, KeyBinding keyBinding) {
+        if (!playerEntity.isVisible()) {
+            return;
+        }
         // Must be factor of block size
         Vector2 nextMove = new Vector2(0, 0);
         if (Gdx.input.isKeyPressed(keyBinding.left())) {
@@ -378,16 +390,27 @@ public class GameScreen implements Screen {
     }
 
     private void checkForOtherEntities(MovableEntity entity) {
+        if (entity.isPlayer() && collidesWithOthers(entity)) {
+            entity.setVisible(false);
+        }
+    }
+
+    private boolean collidesWithOthers(MovableEntity entity) {
+        List<? extends MovableEntity> others = getAdversariesOf(entity);
+        return others.stream()
+                .anyMatch(otherEntity -> entity.getRectangle().overlaps(otherEntity.getRectangle()));
+    }
+
+    private List<? extends MovableEntity> getAdversariesOf(MovableEntity entity) {
         List<? extends MovableEntity> others = List.of();
-        if (entity.getEntityType() == EntityType.ENEMY) {
+        if (entity.isEnemy()) {
             others = level.players;
-        } else if (entity.getEntityType() == EntityType.PLAYER) {
+        } else if (entity.isPlayer()) {
             others = level.enemies;
         }
-        if (others.stream()
-                .anyMatch(otherEntity -> entity.getRectangle().overlaps(otherEntity.getRectangle()))) {
-            setGameFinished(false);
-        }
+        return others.stream()
+                .filter(Entity::isVisible)
+                .collect(Collectors.toList());
     }
 
     @Override
