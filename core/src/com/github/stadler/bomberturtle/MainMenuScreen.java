@@ -8,6 +8,9 @@ import com.badlogic.gdx.utils.ScreenUtils;
 import java.time.LocalDateTime;
 
 import static com.badlogic.gdx.Input.Keys.*;
+import static com.github.stadler.bomberturtle.Constants.*;
+import static com.github.stadler.bomberturtle.Constants.VIEWPORT_HEIGHT;
+import static com.github.stadler.bomberturtle.Constants.VIEWPORT_WIDTH;
 
 public class MainMenuScreen implements Screen {
 
@@ -19,7 +22,7 @@ public class MainMenuScreen implements Screen {
         this.game = game;
 
         camera = new OrthographicCamera();
-        camera.setToOrtho(false, 800, 600);
+        camera.setToOrtho(false, VIEWPORT_WIDTH, VIEWPORT_HEIGHT);
     }
 
     @Override
@@ -29,7 +32,7 @@ public class MainMenuScreen implements Screen {
 
     @Override
     public void render(float delta) {
-        ScreenUtils.clear(0.7f, 0.8f, 0.9f, 1);
+        ScreenUtils.clear(BACKGROUND_COLOR);
 
         camera.update();
         game.batch.setProjectionMatrix(camera.combined);

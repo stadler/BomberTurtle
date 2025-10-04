@@ -16,24 +16,17 @@ import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalTime;
 import java.time.temporal.ChronoField;
-import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 import static com.badlogic.gdx.Input.Keys;
-import static com.github.stadler.bomberturtle.LevelEditor.BLOCK_SIZE;
-import static com.github.stadler.bomberturtle.LevelEditor.BOMB_SIZE;
+import static com.github.stadler.bomberturtle.Constants.*;
 
 public class GameScreen implements Screen {
 
     private static final boolean DRAW_DEBUG_RECTANGLE = false;
-
-    public static final float SOUND_VOLUME = 0.5f;
-    public static final int TOTAL_LEVELS = 4;
-    private static final Duration GAME_TIME = Duration.of(15, ChronoUnit.SECONDS);
-    public static final float MOVE_AMOUNT = BLOCK_SIZE / 20f;
 
     private final Random random = new Random();
 
@@ -323,7 +316,7 @@ public class GameScreen implements Screen {
             nextMove.y = -MOVE_AMOUNT;
         }
         if (Gdx.input.isKeyPressed(keyBinding.dropBomb())) {
-            if (playerEntity.getLastBomb().isBefore(Instant.now().minus(PlayerEntity.BOMB_DELAY))) {
+            if (playerEntity.getLastBomb().isBefore(Instant.now().minus(BOMB_DELAY))) {
                 level.miniBombs.add(
                         new BombEntity("MiniBomb", EntityType.BOMB,
                                 game.miniBombTexture,
@@ -355,8 +348,8 @@ public class GameScreen implements Screen {
 
     private static Rectangle calculateMiniBombRectangle(Rectangle playerRectangle) {
         return new Rectangle(
-                playerRectangle.x + (BLOCK_SIZE/2) - (BOMB_SIZE/2),
-                playerRectangle.y + (BLOCK_SIZE/2) - (BOMB_SIZE/2),
+                playerRectangle.x + (BLOCK_SIZE /2) - (BOMB_SIZE /2),
+                playerRectangle.y + (BLOCK_SIZE /2) - (BOMB_SIZE /2),
                 BOMB_SIZE,
                 BOMB_SIZE);
     }

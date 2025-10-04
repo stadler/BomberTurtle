@@ -9,8 +9,6 @@ import lombok.Getter;
 
 public class Explosion {
 
-    private static final int EXPLOSION_SIZE = 100;
-
     private final Animation<TextureRegion> animation;
 
     @Getter

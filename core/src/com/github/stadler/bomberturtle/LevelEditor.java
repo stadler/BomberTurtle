@@ -17,14 +17,11 @@ import java.time.Instant;
 import java.util.Arrays;
 import java.util.List;
 
+import static com.github.stadler.bomberturtle.Constants.*;
 import static com.github.stadler.bomberturtle.entities.EntityType.getEntityTypeForChar;
 
 public class LevelEditor {
 
-    public static final int BOMB_SIZE = 20;
-    public static final int BLOCK_SIZE = 50;
-    private static final int LEVEL_HEIGHT = 12;
-    private static final int LEVEL_WIDTH = 16;
     private final Camera camera;
     private final Texture wallTexture;
     private final List<Texture> playerTextures;
@@ -72,7 +69,7 @@ public class LevelEditor {
                                             getPlayerTexture(level.players.size() + 1),
                                             createRectangle(BLOCK_SIZE - 1, BLOCK_SIZE - 1, startX, startY),
                                             new Vector2(0, 0),
-                                            Instant.now().minus(PlayerEntity.BOMB_DELAY)));
+                                            Instant.now().minus(BOMB_DELAY)));
                         }
                     }
                     case EntityType.ENEMY -> level.enemies.add(
