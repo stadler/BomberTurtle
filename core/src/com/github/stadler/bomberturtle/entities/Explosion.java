@@ -22,7 +22,7 @@ public class Explosion {
     public Explosion(Rectangle rectangle) {
         this.rectangle = rectangle;
         Texture texture = new Texture("animations/explosion.png");
-        TextureRegion[] textureRegion = TextureRegion.split(texture, EXPLOSION_SIZE, EXPLOSION_SIZE)[0];
+        TextureRegion[] textureRegion = TextureRegion.split(texture, (int) rectangle.width, (int) rectangle.height)[0];
         animation = new Animation<>(0.2f, textureRegion);
     }
 
@@ -35,7 +35,7 @@ public class Explosion {
 
     public void render(SpriteBatch batch) {
         batch.draw(animation.getKeyFrame(stateTime),
-                rectangle.x - (rectangle.width),
-                rectangle.y - (rectangle.height));
+                rectangle.x,
+                rectangle.y);
     }
 }

@@ -3,8 +3,10 @@ package com.github.stadler.bomberturtle;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.audio.Sound;
+import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.g2d.Sprite;
+import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.utils.ScreenUtils;
@@ -22,8 +24,11 @@ import java.util.stream.Stream;
 
 import static com.badlogic.gdx.Input.Keys;
 import static com.github.stadler.bomberturtle.LevelEditor.BLOCK_SIZE;
+import static com.github.stadler.bomberturtle.LevelEditor.BOMB_SIZE;
 
 public class GameScreen implements Screen {
+
+    private static final boolean DRAW_DEBUG_RECTANGLE = false;
 
     public static final float SOUND_VOLUME = 0.5f;
     public static final int TOTAL_LEVELS = 4;
@@ -87,6 +92,10 @@ public class GameScreen implements Screen {
         // coordinate system specified by the camera.
         game.batch.setProjectionMatrix(camera.combined);
         game.batch.begin();
+        game.shape.setProjectionMatrix(camera.combined);
+        game.shape.begin(ShapeRenderer.ShapeType.Line);
+        game.shape.setColor(Color.RED);
+
 
         if (level.players.isEmpty()) {
             setGameFinished(false);
@@ -96,12 +105,12 @@ public class GameScreen implements Screen {
         }
         level.players.forEach(this::drawEntity);
         level.enemies.forEach(this::drawEntity);
-        level.walls.forEach(wall ->
-                game.batch.draw(wall.getTexture(), wall.getRectangle().x, wall.getRectangle().y, wall.getRectangle().width, wall.getRectangle().height));
+        level.walls.forEach(this::drawEntity);
         level.miniBombs.forEach(this::drawEntity);
         explosions.forEach(explosion -> {
             explosion.update(deltaTime);
             explosion.render(game.batch);
+            drawDebugRectangle(explosion.getRectangle());
             removeEntitiesInExplosion(explosion, level.players);
             removeEntitiesInExplosion(explosion, level.enemies);
             removeEntitiesInExplosion(explosion, level.walls);
@@ -143,10 +152,17 @@ public class GameScreen implements Screen {
                 }
             }
         }
+        game.shape.end();
         game.batch.end();
 
         if (!isLevelFinished()) {
             handleInputs();
+        }
+    }
+
+    private void drawDebugRectangle(Rectangle rectangle) {
+        if (DRAW_DEBUG_RECTANGLE) {
+            game.shape.rect(rectangle.x, rectangle.y, rectangle.width, rectangle.height);
         }
     }
 
@@ -177,6 +193,8 @@ public class GameScreen implements Screen {
                 entity.getRectangle().width, entity.getRectangle().height,
                 1, 1,
                 calculateDegree(lastMove));
+
+        drawDebugRectangle(entity.getRectangle());
     }
 
     static float calculateDegree(Vector2 vector2) {
@@ -319,7 +337,7 @@ public class GameScreen implements Screen {
                     .filter(bomb -> bomb.getFromPlayer() == playerEntity)
                     .toList();
             explosions.addAll(bombsToIgnite.stream()
-                    .map(bomb -> new Explosion(bomb.getRectangle()))
+                    .map(bomb -> new Explosion(calculateExplosionRectangle(bomb.getRectangle())))
                     .toList());
             level.miniBombs.removeAll(bombsToIgnite);
         }
@@ -327,8 +345,20 @@ public class GameScreen implements Screen {
         doFirstPossibleMove(playerEntity, calculatePermutations(nextMove).toArray(Vector2[]::new));
     }
 
-    private static Rectangle calculateMiniBombRectangle(Rectangle rectangle) {
-        return new Rectangle(rectangle.x + rectangle.width / 3, rectangle.y, rectangle.width / 2, rectangle.height / 2);
+    private static Rectangle calculateExplosionRectangle(Rectangle bombRectangle) {
+        return new Rectangle(
+                bombRectangle.x + (bombRectangle.width / 2) - BLOCK_SIZE,
+                bombRectangle.y + (bombRectangle.height / 2) - BLOCK_SIZE,
+                BLOCK_SIZE * 2,
+                BLOCK_SIZE * 2);
+    }
+
+    private static Rectangle calculateMiniBombRectangle(Rectangle playerRectangle) {
+        return new Rectangle(
+                playerRectangle.x + (BLOCK_SIZE/2) - (BOMB_SIZE/2),
+                playerRectangle.y + (BLOCK_SIZE/2) - (BOMB_SIZE/2),
+                BOMB_SIZE,
+                BOMB_SIZE);
     }
 
     private static Stream<Vector2> calculatePermutations(Vector2 move) {
@@ -371,6 +401,7 @@ public class GameScreen implements Screen {
     private boolean doesNotCollideWithWall(Rectangle newRectangle) {
         return level.walls
                 .stream()
+                .filter(Entity::isVisible)
                 .noneMatch(wall -> newRectangle.overlaps(wall.getRectangle()));
     }
 
@@ -398,6 +429,7 @@ public class GameScreen implements Screen {
     private boolean collidesWithOthers(MovableEntity entity) {
         List<? extends MovableEntity> others = getAdversariesOf(entity);
         return others.stream()
+                .filter(Entity::isVisible)
                 .anyMatch(otherEntity -> entity.getRectangle().overlaps(otherEntity.getRectangle()));
     }
 

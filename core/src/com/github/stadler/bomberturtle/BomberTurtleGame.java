@@ -9,6 +9,7 @@ import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator;
 import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator.FreeTypeFontParameter;
+import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -16,6 +17,7 @@ import java.util.List;
 
 public class BomberTurtleGame extends Game {
 
+    ShapeRenderer shape;
     SpriteBatch batch;
     BitmapFont titleFont;
     BitmapFont textFont;
@@ -31,6 +33,7 @@ public class BomberTurtleGame extends Game {
     public void create() {
         Gdx.app.setLogLevel(Application.LOG_INFO);
 
+        shape = new ShapeRenderer();
         batch = new SpriteBatch();
 
         // Textures
@@ -65,6 +68,7 @@ public class BomberTurtleGame extends Game {
     @Override
     public void dispose() {
         batch.dispose();
+        shape.dispose();
 
         playerTextures.forEach(Texture::dispose);
         enemyTexture.dispose();

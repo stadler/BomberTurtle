@@ -21,6 +21,7 @@ import static com.github.stadler.bomberturtle.entities.EntityType.getEntityTypeF
 
 public class LevelEditor {
 
+    public static final int BOMB_SIZE = 20;
     public static final int BLOCK_SIZE = 50;
     private static final int LEVEL_HEIGHT = 12;
     private static final int LEVEL_WIDTH = 16;
