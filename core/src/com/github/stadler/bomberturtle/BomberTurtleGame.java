@@ -25,6 +25,8 @@ public class BomberTurtleGame extends Game {
     List<Texture> playerTextures;
     Texture enemyTexture;
     Texture miniBombTexture;
+    Texture darthVaderTexture;
+    Texture poopTexture;
     @Getter
     @Setter
     private int selectedPlayers = 1;
@@ -44,6 +46,8 @@ public class BomberTurtleGame extends Game {
                 new Texture("Bombe_rot.png"));
         enemyTexture = new Texture("Schilki.png");
         miniBombTexture = new Texture("MiniBombe.png");
+        darthVaderTexture = new Texture("Boss-Darth-Vader.png");
+        poopTexture = new Texture("Boss-Poop.png");
 
         // Fonts
         titleFont = generateFont("fonts/Silkscreen/Silkscreen-Bold.ttf", 30);
@@ -74,6 +78,8 @@ public class BomberTurtleGame extends Game {
         enemyTexture.dispose();
         wallTexture.dispose();
         miniBombTexture.dispose();
+        darthVaderTexture.dispose();
+        poopTexture.dispose();
 
         titleFont.dispose();
         textFont.dispose();

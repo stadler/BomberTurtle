@@ -14,7 +14,9 @@ public class Constants {
 
     public static final float SOUND_VOLUME = 0.5f;
 
-    public static final int TOTAL_LEVELS = 4;
+    public static final int START_LEVEL = 1;
+    private static final int HIGHEST_LEVEL = 6;
+    public static final int TOTAL_LEVELS = (HIGHEST_LEVEL - START_LEVEL) + 1;
     public static final int LEVEL_HEIGHT = 12;
     public static final int LEVEL_WIDTH = 16;
     public static final Duration GAME_TIME = Duration.of(15, ChronoUnit.SECONDS);

@@ -26,12 +26,16 @@ public class LevelEditor {
     private final Texture wallTexture;
     private final List<Texture> playerTextures;
     private final Texture enemyTexture;
+    private final Texture darthVaderTexture;
+    private final Texture poopTexture;
 
-    LevelEditor(Camera camera, Texture wallTexture, List<Texture> playerTextures, Texture enemyTexture) {
+    LevelEditor(Camera camera, Texture wallTexture, List<Texture> playerTextures, Texture enemyTexture, Texture darthVaderTexture, Texture poopTexture) {
         this.camera = camera;
         this.wallTexture = wallTexture;
         this.playerTextures = playerTextures;
         this.enemyTexture = enemyTexture;
+        this.darthVaderTexture = darthVaderTexture;
+        this.poopTexture = poopTexture;
     }
 
     public Level loadLevel(String levelPath, int selectedPlayers) {
@@ -46,20 +50,26 @@ public class LevelEditor {
     }
 
     private Level createLevel(List<String> rows, int selectedPlayers) {
+        EntityType[][] levelEntityTypes = new EntityType[LEVEL_HEIGHT][LEVEL_WIDTH];
+        for (int rowNr = 0; rowNr < LEVEL_HEIGHT; rowNr++) {
+            String row = rows.get(11 - (rowNr));
+            for (int colNr = 0; colNr < LEVEL_WIDTH; colNr++) {
+                char currentChar = row.charAt(colNr);
+                levelEntityTypes[rowNr][colNr] = getEntityTypeForChar(currentChar);
+            }
+        }
+
         int currentPlayers = 0;
         Level level = new Level();
-        for (int rowNr = 1; rowNr <= LEVEL_HEIGHT; rowNr++) {
-            String row = rows.get(11 - (rowNr - 1));
-            for (int colNr = 1; colNr <= LEVEL_WIDTH; colNr++) {
-                char currentChar = row.charAt(colNr - 1);
-                int startX = (colNr - 1) * BLOCK_SIZE;
-                int startY = (rowNr - 1) * BLOCK_SIZE;
-                switch (getEntityTypeForChar(currentChar)) {
+        for (int rowNr = 0; rowNr < LEVEL_HEIGHT; rowNr++) {
+            for (int colNr = 0; colNr < LEVEL_WIDTH; colNr++) {
+                EntityType entityType = levelEntityTypes[rowNr][colNr];
+                switch (entityType) {
                     case EntityType.WALL -> level.walls.add(
                             new Entity("Wall",
                                     EntityType.WALL,
                                     wallTexture,
-                                    createRectangle(BLOCK_SIZE, BLOCK_SIZE, startX, startY)));
+                                    createRectangle(BLOCK_SIZE, BLOCK_SIZE, getStartX(colNr), getStartY(rowNr))));
                     case EntityType.PLAYER -> {
                         if (currentPlayers < selectedPlayers) {
                             currentPlayers++;
@@ -67,7 +77,7 @@ public class LevelEditor {
                                     new PlayerEntity("Player" + (level.players.size() + 1),
                                             EntityType.PLAYER,
                                             getPlayerTexture(level.players.size() + 1),
-                                            createRectangle(BLOCK_SIZE - 1, BLOCK_SIZE - 1, startX, startY),
+                                            createRectangle(BLOCK_SIZE - 1, BLOCK_SIZE - 1, getStartX(colNr), getStartY(rowNr)),
                                             new Vector2(0, 0),
                                             Instant.now().minus(BOMB_DELAY)));
                         }
@@ -76,12 +86,45 @@ public class LevelEditor {
                             new MovableEntity("Enemy" + (level.enemies.size() + 1),
                                     EntityType.ENEMY,
                                     enemyTexture,
-                                    createRectangle(BLOCK_SIZE - 1, BLOCK_SIZE - 1, startX, startY),
+                                    createRectangle(BLOCK_SIZE - 1, BLOCK_SIZE - 1, getStartX(colNr), getStartY(rowNr)),
                                     new Vector2(0, 0)));
+                    case EntityType.DARTH_VADER -> {
+                        if (isBottomLeft(levelEntityTypes, rowNr, colNr, EntityType.DARTH_VADER)) {
+                            level.enemies.add(
+                                    new MovableEntity("Vader" + (level.enemies.size() + 1),
+                                            EntityType.DARTH_VADER,
+                                            darthVaderTexture,
+                                            createRectangle((2 * BLOCK_SIZE) - 1, (2 * BLOCK_SIZE) - 1, getStartX(colNr), getStartY(rowNr)),
+                                            new Vector2(0, 0)));
+                        }
+                    }
+                    case EntityType.POOP -> {
+                        if (isBottomLeft(levelEntityTypes, rowNr, colNr, EntityType.POOP)) {
+                            level.enemies.add(
+                                    new MovableEntity("Poop" + (level.enemies.size() + 1),
+                                            EntityType.POOP,
+                                            poopTexture,
+                                            createRectangle((3 * BLOCK_SIZE) - 1, (3 * BLOCK_SIZE) - 1, getStartX(colNr), getStartY(rowNr)),
+                                            new Vector2(0, 0)));
+                        }
+                    }
                 }
             }
         }
         return level;
+    }
+
+    private static boolean isBottomLeft(EntityType[][] levelEntityTypes, int rowNr, int colNr, EntityType entityType) {
+        return (rowNr == 0 || levelEntityTypes[rowNr - 1][colNr] != entityType)
+                && (colNr ==0 || levelEntityTypes[rowNr][colNr - 1] != entityType);
+    }
+
+    private static int getStartY(int rowNr) {
+        return (rowNr) * BLOCK_SIZE;
+    }
+
+    private static int getStartX(int colNr) {
+        return (colNr) * BLOCK_SIZE;
     }
 
     private Texture getPlayerTexture(int index) {

@@ -38,7 +38,7 @@ public class GameScreen implements Screen {
 
     private Sound currentSound;
     private Level level;
-    private int levelNr = 1;
+    private int levelNr = START_LEVEL;
     private LocalTime startTime;
     private LocalTime levelFinishedTime = null;
     private boolean gameWon = false;
@@ -58,7 +58,7 @@ public class GameScreen implements Screen {
         camera.setToOrtho(false, 800, 600);
 
         // Load level
-        levelEditor = new LevelEditor(camera, game.wallTexture, game.playerTextures, game.enemyTexture);
+        levelEditor = new LevelEditor(camera, game.wallTexture, game.playerTextures, game.enemyTexture, game.darthVaderTexture, game.poopTexture);
         level = levelEditor.loadLevel("levels/level1.bt", game.getSelectedPlayers());
         initializeNewGame();
     }

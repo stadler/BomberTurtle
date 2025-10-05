@@ -10,6 +10,8 @@ public enum EntityType {
     PLAYER('p'),
     ENEMY('s'),
     BOMB('b'),
+    POOP('P'),
+    DARTH_VADER('D'),
     UNKNOWN('?');
 
     @Getter
