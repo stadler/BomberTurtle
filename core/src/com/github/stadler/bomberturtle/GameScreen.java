@@ -76,7 +76,7 @@ public class GameScreen implements Screen {
     public void render(float deltaTime) {
         // clear the screen with a dark blue color. The arguments to clear are the red, green
         // blue and alpha component in the range [0,1] of the color to be used to clear the screen.
-        ScreenUtils.clear(0.9f, 0.7f, 0.9f, 1);
+        ScreenUtils.clear(Constants.START_SCREEN_COLOR);
 
         // tell the camera to update its matrices.
         camera.update();
@@ -89,13 +89,6 @@ public class GameScreen implements Screen {
         game.shape.begin(ShapeRenderer.ShapeType.Line);
         game.shape.setColor(Color.RED);
 
-
-        if (level.players.isEmpty()) {
-            setGameFinished(false);
-        }
-        if (level.enemies.isEmpty()) {
-            setGameFinished(true);
-        }
         level.players.forEach(this::drawEntity);
         level.enemies.forEach(this::drawEntity);
         level.walls.forEach(this::drawEntity);
@@ -243,7 +236,7 @@ public class GameScreen implements Screen {
         }
         long soundId = currentSound.play(SOUND_VOLUME);
         currentSound.setLooping(soundId, true);
-        currentSound.setPitch(soundId, 2);
+        currentSound.setPitch(soundId, SOUND_PITCH);
     }
 
     private void moveEnemy(MovableEntity enemy, int enemyNr) {
