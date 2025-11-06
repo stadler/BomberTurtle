@@ -1,0 +1,13 @@
+### Next Improvements
+- Nicer background
+- Power Ups:
+  - Bigger explosions
+  - Freeze all enemies for 3sek
+  - Speedup
+- Boss has multiple lives 3
+- Extra abilities of bosses
+    - Darth Vader: Lazer Eyes
+    - Poop: Summon Mini-poops
+- Improve AI
+    - Random AI: Be a bit more clever. E.g. move towards bombs in 1 of 4 moves...
+    - Jaeger Instinct AI: Chose next enemy after killing one. 
