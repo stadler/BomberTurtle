@@ -10,4 +10,7 @@
     - Poop: Summon Mini-poops
 - Improve AI
     - Random AI: Be a bit more clever. E.g. move towards bombs in 1 of 4 moves...
-    - Jaeger Instinct AI: Chose next enemy after killing one. 
+    - Jaeger Instinct AI: Chose next enemy after killing one.
+- Improve the build
+  - Convert to single module
+  - Provide a simple executable for the game
