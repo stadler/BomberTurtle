@@ -41,7 +41,7 @@ public class MainMenuScreen implements Screen {
         game.titleFont.draw(game.batch, "Willkommen bei Bomber Turtle ", 50, 500);
 
         game.batch.draw(game.enemyTexture, 200, 300, 100, 100);
-        game.batch.draw(game.playerTextures.get(0), 600 - 60, 300, 100, 100);
+        game.batch.draw(game.playerTextures.get(3), 600 - 60, 300, 100, 100);
         for (int currentX = 0; currentX < camera.viewportWidth; currentX += 50) {
             game.batch.draw(game.wallTexture, currentX, 250, 50, 50);
         }

@@ -43,7 +43,8 @@ public class BomberTurtleGame extends Game {
         playerTextures = List.of(
                 new Texture("Bombe_blau.png"),
                 new Texture("Bombe_grün.png"),
-                new Texture("Bombe_rot.png"));
+                new Texture("Bombe_rot.png"),
+                new Texture("Bombe_schwarz.png"));
         enemyTexture = new Texture("Schilki.png");
         miniBombTexture = new Texture("MiniBombe.png");
         darthVaderTexture = new Texture("Boss-Darth-Vader.png");

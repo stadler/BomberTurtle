@@ -74,9 +74,9 @@ public class LevelEditor {
                         if (currentPlayers < selectedPlayers) {
                             currentPlayers++;
                             level.players.add(
-                                    new PlayerEntity("Player" + (level.players.size() + 1),
+                                    new PlayerEntity("Player" + currentPlayers,
                                             EntityType.PLAYER,
-                                            getPlayerTexture(level.players.size() + 1),
+                                            getPlayerTexture(currentPlayers - 1),
                                             createRectangle(BLOCK_SIZE - 1, BLOCK_SIZE - 1, getStartX(colNr), getStartY(rowNr)),
                                             new Vector2(0, 0),
                                             Instant.now().minus(BOMB_DELAY)));
@@ -128,7 +128,7 @@ public class LevelEditor {
     }
 
     private Texture getPlayerTexture(int index) {
-        return playerTextures.get(index % 3);
+        return playerTextures.get(index % playerTextures.size());
     }
 
     private void validateRows(List<String> rows, String levelFile) {
