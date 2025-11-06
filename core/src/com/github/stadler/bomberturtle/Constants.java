@@ -10,7 +10,7 @@ public class Constants {
     public static final int VIEWPORT_WIDTH = 800;
     public static final int VIEWPORT_HEIGHT = 600;
 
-    public static final Color START_SCREEN_COLOR = new Color(0.9f, 0.7f, 0.9f, 1);
+    public static final Color START_SCREEN_COLOR = new Color(0.9f, 0.9f, 0.9f, 1);
     public static final Color BACKGROUND_COLOR = new Color(0.7f, 0.8f, 0.9f, 1);
 
     public static final float SOUND_VOLUME = 0.5f;
