@@ -26,8 +26,6 @@ import static com.github.stadler.bomberturtle.Constants.*;
 
 public class GameScreen implements Screen {
 
-    private static final boolean DRAW_DEBUG_RECTANGLE = false;
-
     private final Random random = new Random();
 
     private final BomberTurtleGame game;
@@ -94,12 +92,12 @@ public class GameScreen implements Screen {
         level.walls.forEach(this::drawEntity);
         level.miniBombs.forEach(this::drawEntity);
         explosions.forEach(explosion -> {
-            explosion.update(deltaTime);
-            explosion.render(game.batch);
-            drawDebugRectangle(explosion.getRectangle());
             removeEntitiesInExplosion(explosion, level.players);
             removeEntitiesInExplosion(explosion, level.enemies);
             removeEntitiesInExplosion(explosion, level.walls);
+            explosion.update(deltaTime);
+            explosion.render(game.batch);
+            drawDebugRectangle(explosion.getRectangle());
         });
         explosions.removeAll(
                 explosions.stream()
@@ -112,10 +110,12 @@ public class GameScreen implements Screen {
             setGameFinished(false);
         }
         if (!isLevelFinished()) {
-            if (calculateRemainingSeconds() <= 0) {
+            long remainingSeconds = calculateRemainingSeconds(level);
+            if (remainingSeconds <= 0) {
                 setGameFinished(true);
             } else {
-                game.textFont.draw(game.batch, "Zeit: " + calculateRemainingSeconds(), 100, camera.viewportHeight - 10);
+                game.textFont.draw(game.batch, "Zeit: " + remainingSeconds, 100, camera.viewportHeight - 10);
+                drawBossHealth(level);
             }
 
         } else {
@@ -146,8 +146,20 @@ public class GameScreen implements Screen {
         }
     }
 
+    private void drawBossHealth(Level level) {
+        Optional<MovableEntity> boss = level.findBoss();
+        if (boss.isPresent()) {
+            int strength = boss.get().getStrength();
+            String healthString = "Leben: ";
+            for (int health = 0; health < strength; health++) {
+                healthString += "<3 ";
+            }
+            game.textFont.draw(game.batch, healthString, 300, camera.viewportHeight - 10);
+        }
+    }
+
     private void drawDebugRectangle(Rectangle rectangle) {
-        if (DRAW_DEBUG_RECTANGLE) {
+        if (Constants.DRAW_DEBUG_RECTANGLE) {
             game.shape.rect(rectangle.x, rectangle.y, rectangle.width, rectangle.height);
         }
     }
@@ -161,8 +173,15 @@ public class GameScreen implements Screen {
 
     private <T extends Entity> void removeEntitiesInExplosion(Explosion explosion, List<T> entities) {
         entities.stream()
-                .filter(entity -> explosion.getRectangle().overlaps(entity.getRectangle()))
-                .forEach(entity -> entity.setVisible(false));
+                .filter(entity ->
+                        explosion.getRectangle().overlaps(entity.getRectangle())
+                        && explosion.hasStarted())
+                .forEach(entity -> {
+                    entity.setStrength(entity.getStrength() - 1);
+                    if (entity.getStrength() <= 0) {
+                        entity.setVisible(false);
+                    }
+                });
     }
 
     private void drawEntity(Entity entity) {
@@ -194,8 +213,8 @@ public class GameScreen implements Screen {
         return levelFinishedTime != null;
     }
 
-    private long calculateRemainingSeconds() {
-        LocalTime endTime = startTime.plus(GAME_TIME);
+    private long calculateRemainingSeconds(Level level) {
+        LocalTime endTime = startTime.plus(level.calculateLevelTime());
         Duration remainingTime = Duration.between(LocalTime.now(), endTime);
         return remainingTime.toSeconds();
     }

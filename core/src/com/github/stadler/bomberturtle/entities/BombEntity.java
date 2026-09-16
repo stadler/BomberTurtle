@@ -15,7 +15,7 @@ public class BombEntity extends Entity {
     }
 
     public BombEntity(String name, EntityType entityType, Texture texture, Rectangle rectangle, PlayerEntity fromPlayer) {
-        super(name, entityType, texture, rectangle);
+        super(name, entityType, texture, rectangle, 1);
         this.fromPlayer = fromPlayer;
     }
 }

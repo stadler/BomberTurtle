@@ -15,8 +15,8 @@ public class MovableEntity extends Entity {
     public MovableEntity() {
     }
 
-    public MovableEntity(String name, EntityType entityType, Texture texture, Rectangle rectangle, Vector2 lastMove) {
-        super(name, entityType, texture, rectangle);
+    public MovableEntity(String name, EntityType entityType, Texture texture, Rectangle rectangle, Vector2 lastMove, int strength) {
+        super(name, entityType, texture, rectangle, strength);
         this.lastMove = lastMove;
     }
 

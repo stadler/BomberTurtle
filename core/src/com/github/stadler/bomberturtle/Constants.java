@@ -21,7 +21,6 @@ public class Constants {
     public static final int TOTAL_LEVELS = (HIGHEST_LEVEL - START_LEVEL) + 1;
     public static final int LEVEL_HEIGHT = 12;
     public static final int LEVEL_WIDTH = 16;
-    public static final Duration GAME_TIME = Duration.of(15, ChronoUnit.SECONDS);
 
     public static final int BLOCK_SIZE = 50;
     public static final float MOVE_AMOUNT = BLOCK_SIZE / 20f;
@@ -29,4 +28,5 @@ public class Constants {
     public static final int BOMB_SIZE = 20;
     public static final Duration BOMB_DELAY = Duration.ofSeconds(1);
 
+    public static final boolean DRAW_DEBUG_RECTANGLE = false;
 }

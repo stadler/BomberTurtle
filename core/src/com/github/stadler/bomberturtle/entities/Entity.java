@@ -11,6 +11,7 @@ public class Entity {
     private EntityType entityType;
     private Texture texture;
     private Rectangle rectangle;
+    private int strength;
     private boolean isVisible = true;
 
     public Entity() {
@@ -20,11 +21,13 @@ public class Entity {
             String name,
             EntityType entityType,
             Texture texture,
-            Rectangle rectangle) {
+            Rectangle rectangle,
+            int strength) {
         this.name = name;
         this.entityType = entityType;
         this.texture = texture;
         this.rectangle = rectangle;
+        this.strength = strength;
     }
 
     public boolean isPlayer() {

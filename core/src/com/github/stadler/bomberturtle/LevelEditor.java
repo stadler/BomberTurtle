@@ -4,10 +4,7 @@ import com.badlogic.gdx.graphics.Camera;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector2;
-import com.github.stadler.bomberturtle.entities.Entity;
-import com.github.stadler.bomberturtle.entities.EntityType;
-import com.github.stadler.bomberturtle.entities.MovableEntity;
-import com.github.stadler.bomberturtle.entities.PlayerEntity;
+import com.github.stadler.bomberturtle.entities.*;
 
 import java.io.IOException;
 import java.io.UncheckedIOException;
@@ -69,7 +66,7 @@ public class LevelEditor {
                             new Entity("Wall",
                                     EntityType.WALL,
                                     wallTexture,
-                                    createRectangle(BLOCK_SIZE, BLOCK_SIZE, getStartX(colNr), getStartY(rowNr))));
+                                    createRectangle(BLOCK_SIZE, BLOCK_SIZE, getStartX(colNr), getStartY(rowNr)), 1));
                     case EntityType.PLAYER -> {
                         if (currentPlayers < selectedPlayers) {
                             currentPlayers++;
@@ -87,25 +84,26 @@ public class LevelEditor {
                                     EntityType.ENEMY,
                                     enemyTexture,
                                     createRectangle(BLOCK_SIZE - 1, BLOCK_SIZE - 1, getStartX(colNr), getStartY(rowNr)),
-                                    new Vector2(0, 0)));
+                                    new Vector2(0, 0),
+                                    1));
                     case EntityType.DARTH_VADER -> {
                         if (isBottomLeft(levelEntityTypes, rowNr, colNr, EntityType.DARTH_VADER)) {
                             level.enemies.add(
-                                    new MovableEntity("Vader" + (level.enemies.size() + 1),
+                                    new BossEntity("Vader" + (level.enemies.size() + 1),
                                             EntityType.DARTH_VADER,
                                             darthVaderTexture,
                                             createRectangle((2 * BLOCK_SIZE) - 1, (2 * BLOCK_SIZE) - 1, getStartX(colNr), getStartY(rowNr)),
-                                            new Vector2(0, 0)));
+                                            new Vector2(0, 0), 2));
                         }
                     }
                     case EntityType.POOP -> {
                         if (isBottomLeft(levelEntityTypes, rowNr, colNr, EntityType.POOP)) {
                             level.enemies.add(
-                                    new MovableEntity("Poop" + (level.enemies.size() + 1),
+                                    new BossEntity("Poop" + (level.enemies.size() + 1),
                                             EntityType.POOP,
                                             poopTexture,
                                             createRectangle((3 * BLOCK_SIZE) - 1, (3 * BLOCK_SIZE) - 1, getStartX(colNr), getStartY(rowNr)),
-                                            new Vector2(0, 0)));
+                                            new Vector2(0, 0), 5));
                         }
                     }
                 }

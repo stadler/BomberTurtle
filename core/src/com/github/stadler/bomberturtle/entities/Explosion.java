@@ -31,6 +31,10 @@ public class Explosion {
         }
     }
 
+    public boolean hasStarted() {
+        return stateTime ==  0.0f;
+    }
+
     public void render(SpriteBatch batch) {
         batch.draw(animation.getKeyFrame(stateTime),
                 rectangle.x,

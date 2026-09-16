@@ -15,7 +15,7 @@ public class PlayerEntity extends MovableEntity {
     private Instant lastBomb;
 
     public PlayerEntity(String name, EntityType entityType, Texture texture, Rectangle rectangle, Vector2 lastMove, Instant lastBomb) {
-        super(name, entityType, texture, rectangle, lastMove);
+        super(name, entityType, texture, rectangle, lastMove, 1);
         this.lastBomb = lastBomb;
     }
 
