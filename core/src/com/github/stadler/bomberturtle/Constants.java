@@ -28,5 +28,7 @@ public class Constants {
     public static final int BOMB_SIZE = 20;
     public static final Duration BOMB_DELAY = Duration.ofSeconds(1);
 
+    public static final String LEVEL_PATH = "assets/levels/";
+
     public static final boolean DRAW_DEBUG_RECTANGLE = false;
 }

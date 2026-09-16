@@ -57,7 +57,7 @@ public class GameScreen implements Screen {
 
         // Load level
         levelEditor = new LevelEditor(camera, game.wallTexture, game.playerTextures, game.enemyTexture, game.darthVaderTexture, game.poopTexture);
-        level = levelEditor.loadLevel("levels/level1.bt", game.getSelectedPlayers());
+        level = levelEditor.loadLevel(LEVEL_PATH + "level1.bt", game.getSelectedPlayers());
         initializeNewGame();
     }
 
@@ -65,7 +65,7 @@ public class GameScreen implements Screen {
         startTime = LocalTime.now();
         gameWon = false;
         levelFinishedTime = null;
-        level = levelEditor.loadLevel("levels/level" + levelNr + ".bt", game.getSelectedPlayers());
+        level = levelEditor.loadLevel(LEVEL_PATH + "level" + levelNr + ".bt", game.getSelectedPlayers());
         randomOffset = random.nextInt(game.getSelectedPlayers());
         switchSound();
     }
