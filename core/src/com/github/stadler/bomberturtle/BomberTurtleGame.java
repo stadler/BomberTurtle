@@ -15,6 +15,8 @@ import lombok.Setter;
 
 import java.util.List;
 
+import static com.github.stadler.bomberturtle.Constants.*;
+
 public class BomberTurtleGame extends Game {
 
     ShapeRenderer shape;
@@ -39,20 +41,20 @@ public class BomberTurtleGame extends Game {
         batch = new SpriteBatch();
 
         // Textures
-        wallTexture = new Texture("wall.png");
+        wallTexture = new Texture(TEXTURES_PATH + "wall.png");
         playerTextures = List.of(
-                new Texture("Bombe_blau.png"),
-                new Texture("Bombe_grün.png"),
-                new Texture("Bombe_rot.png"),
-                new Texture("Bombe_schwarz.png"));
-        enemyTexture = new Texture("Schilki.png");
-        miniBombTexture = new Texture("MiniBombe.png");
-        darthVaderTexture = new Texture("Boss-Darth-Vader.png");
-        poopTexture = new Texture("Boss-Poop.png");
+                new Texture(TEXTURES_PATH + "Bombe_blau.png"),
+                new Texture(TEXTURES_PATH + "Bombe_grün.png"),
+                new Texture(TEXTURES_PATH + "Bombe_rot.png"),
+                new Texture(TEXTURES_PATH + "Bombe_schwarz.png"));
+        enemyTexture = new Texture(TEXTURES_PATH + "Schilki.png");
+        miniBombTexture = new Texture(TEXTURES_PATH + "MiniBombe.png");
+        darthVaderTexture = new Texture(TEXTURES_PATH + "Boss-Darth-Vader.png");
+        poopTexture = new Texture(TEXTURES_PATH + "Boss-Poop.png");
 
         // Fonts
-        titleFont = generateFont("fonts/Silkscreen/Silkscreen-Bold.ttf", 30);
-        textFont = generateFont("fonts/Silkscreen/Silkscreen-Regular.ttf", 20);
+        titleFont = generateFont(FONTS_PATH + "Silkscreen/Silkscreen-Bold.ttf", 30);
+        textFont = generateFont(FONTS_PATH + "Silkscreen/Silkscreen-Regular.ttf", 20);
 
         this.setScreen(new MainMenuScreen(this));
     }

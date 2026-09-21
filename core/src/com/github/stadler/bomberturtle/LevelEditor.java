@@ -1,15 +1,13 @@
 package com.github.stadler.bomberturtle;
 
+import com.badlogic.gdx.files.FileHandle;
 import com.badlogic.gdx.graphics.Camera;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector2;
 import com.github.stadler.bomberturtle.entities.*;
 
-import java.io.IOException;
-import java.io.UncheckedIOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
+import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.util.Arrays;
 import java.util.List;
@@ -35,13 +33,10 @@ public class LevelEditor {
         this.poopTexture = poopTexture;
     }
 
-    public Level loadLevel(String levelPath, int selectedPlayers) {
-        List<String> levelLines;
-        try {
-            levelLines = Files.readAllLines(Paths.get(levelPath));
-        } catch (IOException e) {
-            throw new UncheckedIOException("Failed to read level: " + levelPath, e);
-        }
+    public Level loadLevel(FileHandle levelFile, int selectedPlayers) {
+        String levelPath = levelFile.path();
+        String levelAsString = levelFile.readString(StandardCharsets.UTF_8.name());
+        List<String> levelLines = Arrays.asList(levelAsString.split("\n"));
         validateRows(levelLines, levelPath);
         return createLevel(levelLines, selectedPlayers);
     }
@@ -114,7 +109,7 @@ public class LevelEditor {
 
     private static boolean isBottomLeft(EntityType[][] levelEntityTypes, int rowNr, int colNr, EntityType entityType) {
         return (rowNr == 0 || levelEntityTypes[rowNr - 1][colNr] != entityType)
-                && (colNr ==0 || levelEntityTypes[rowNr][colNr - 1] != entityType);
+                && (colNr == 0 || levelEntityTypes[rowNr][colNr - 1] != entityType);
     }
 
     private static int getStartY(int rowNr) {

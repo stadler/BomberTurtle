@@ -31,10 +31,9 @@ public class GameScreen implements Screen {
     private final BomberTurtleGame game;
     private final OrthographicCamera camera;
     private final LevelEditor levelEditor;
-    private final Sound sound1;
-    private final Sound sound2;
+    private final List<Sound> sounds =  new ArrayList<>();
 
-    private Sound currentSound;
+    private int currentSoundIndex;
     private Level level;
     private int levelNr = START_LEVEL;
     private LocalTime startTime;
@@ -47,9 +46,10 @@ public class GameScreen implements Screen {
     public GameScreen(final BomberTurtleGame game) {
         this.game = game;
 
-        sound1 = Gdx.audio.newSound(Gdx.files.internal("audio/Cedi Nr. 3 - kurz.ogg"));
-        sound2 = Gdx.audio.newSound(Gdx.files.internal("audio/Hit the Note.ogg"));
-        currentSound = sound1;
+        sounds.add(Gdx.audio.newSound(Gdx.files.internal(AUDIO_PATH + "Cedi Nr. 3 - kurz.ogg")));
+        sounds.add(Gdx.audio.newSound(Gdx.files.internal(AUDIO_PATH + "Hit the Note.ogg")));
+        sounds.add(Gdx.audio.newSound(Gdx.files.internal(AUDIO_PATH + "Cedi Misterious Procession.ogg")));
+        currentSoundIndex = sounds.size() - 1;
 
         // create the camera and the SpriteBatch
         camera = new OrthographicCamera();
@@ -57,7 +57,7 @@ public class GameScreen implements Screen {
 
         // Load level
         levelEditor = new LevelEditor(camera, game.wallTexture, game.playerTextures, game.enemyTexture, game.darthVaderTexture, game.poopTexture);
-        level = levelEditor.loadLevel(LEVEL_PATH + "level1.bt", game.getSelectedPlayers());
+        level = levelEditor.loadLevel(Gdx.files.internal(LEVEL_PATH + "level1.bt"), game.getSelectedPlayers());
         initializeNewGame();
     }
 
@@ -65,7 +65,7 @@ public class GameScreen implements Screen {
         startTime = LocalTime.now();
         gameWon = false;
         levelFinishedTime = null;
-        level = levelEditor.loadLevel(LEVEL_PATH + "level" + levelNr + ".bt", game.getSelectedPlayers());
+        level = levelEditor.loadLevel(Gdx.files.internal(LEVEL_PATH + "level" + levelNr + ".bt"), game.getSelectedPlayers());
         randomOffset = random.nextInt(game.getSelectedPlayers());
         switchSound();
     }
@@ -247,15 +247,13 @@ public class GameScreen implements Screen {
     }
 
     private void switchSound() {
-        currentSound.stop();
-        if (levelNr % 2 == 0) {
-            currentSound = sound2;
-        } else {
-            currentSound = sound1;
-        }
-        long soundId = currentSound.play(SOUND_VOLUME);
-        currentSound.setLooping(soundId, true);
-        currentSound.setPitch(soundId, SOUND_PITCH);
+        Sound oldSound = getCurrentSound();
+        currentSoundIndex = (currentSoundIndex + 1) % sounds.size();
+        Sound newSound = getCurrentSound();
+        oldSound.stop();
+        long soundId = newSound.play(SOUND_VOLUME);
+        newSound.setLooping(soundId, true);
+        newSound.setPitch(soundId, SOUND_PITCH);
     }
 
     private void moveEnemy(MovableEntity enemy, int enemyNr) {
@@ -456,29 +454,32 @@ public class GameScreen implements Screen {
 
     @Override
     public void show() {
-        currentSound.resume();
+        getCurrentSound().resume();
     }
 
     @Override
     public void pause() {
-        currentSound.pause();
+        getCurrentSound().pause();
     }
 
     @Override
     public void resume() {
-        currentSound.resume();
+        getCurrentSound().resume();
     }
 
     @Override
     public void hide() {
-        currentSound.pause();
+        getCurrentSound().pause();
+    }
+
+    private Sound getCurrentSound() {
+        return sounds.get(currentSoundIndex);
     }
 
     @Override
     public void dispose() {
         // dispose of all the native resources
-        sound1.dispose();
-        sound2.dispose();
+        sounds.forEach(Sound::dispose);
     }
 
 }
