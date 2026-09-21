@@ -2,11 +2,16 @@
 
 A libGDX based game with bombs and turtles.
 
+
 ## Download and Run
 ```bash
 curl -o bomberturtle-0.1.jar https://github.com/stadler/BomberTurtle/releases/download/0.1/bomberturtle-0.1.jar
 java -XstartOnFirstThread -jar bomberturtle-0.1.jar
 ```
+
+## Game Impressions
+![Title](./docs/screenshots/bomberturtle-title.png)
+![Game](./docs/screenshots/bomberturtle-game.png)
 
 ## Build
 ### Preparation
