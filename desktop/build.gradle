@@ -31,7 +31,8 @@ tasks.register('debug', JavaExec) {
 }
 
 tasks.register('dist', Jar) {
-    duplicatesStrategy(DuplicatesStrategy.EXCLUDE)
+    dependsOn classes
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
     manifest {
         attributes 'Main-Class': project.mainClassName
     }
@@ -42,7 +43,3 @@ tasks.register('dist', Jar) {
     with jar
 }
 
-
-dist.dependsOn classes
-
-eclipse.project.name = appName + "-desktop"
