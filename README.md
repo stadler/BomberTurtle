@@ -4,8 +4,9 @@ A libGDX based game with bombs and turtles.
 
 
 ## Download and Run
+You need java >= 21 to run it:
 ```bash
-curl -o bomberturtle-0.1.jar https://github.com/stadler/BomberTurtle/releases/download/0.1/bomberturtle-0.1.jar
+curl -fL -o bomberturtle-0.1.jar https://github.com/stadler/BomberTurtle/releases/download/0.1/bomberturtle-0.1.jar
 java -XstartOnFirstThread -jar bomberturtle-0.1.jar
 ```
 
